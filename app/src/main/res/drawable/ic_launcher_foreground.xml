@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- خلفية ذهبية + حرف ق -->
+    <path
+        android:fillColor="#C9A84C"
+        android:pathData="M54,20 C35.22,20 20,35.22 20,54 C20,72.78 35.22,88 54,88 C72.78,88 88,72.78 88,54 C88,35.22 72.78,20 54,20Z" />
+    <path
+        android:fillColor="#0F1117"
+        android:pathData="M44,42 L64,42 C66,42 67,43 67,45 L67,50 C67,52 66,53 64,53 L57,53 L57,65 C57,66.5 56,67.5 54.5,67.5 C53,67.5 52,66.5 52,65 L52,53 L44,53 C42,53 41,52 41,50 L41,45 C41,43 42,42 44,42Z" />
+    <path
+        android:fillColor="#0F1117"
+        android:pathData="M44,55 L50,55 L50,58 C50,62.42 46.42,66 42,66 C40.9,66 40,65.1 40,64 C40,62.9 40.9,62 42,62 C44.2,62 46,60.2 46,58 L46,55 L44,55Z" />
+</vector>

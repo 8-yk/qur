@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_browse"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="تصفح" />
+
+    <item
+        android:id="@+id/nav_add"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="إضافة" />
+
+    <item
+        android:id="@+id/nav_data"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="البيانات" />
+
+</menu>

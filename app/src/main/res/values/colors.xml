@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Backgrounds -->
+    <color name="bg_primary">#0F1117</color>
+    <color name="bg_surface">#1A1D27</color>
+    <color name="bg_card">#1E2130</color>
+
+    <!-- Gold palette -->
+    <color name="gold_primary">#C9A84C</color>
+    <color name="gold_dim">#7A6530</color>
+    <color name="gold_track">#2A2410</color>
+
+    <!-- Text -->
+    <color name="text_primary">#EEE8D5</color>
+    <color name="text_secondary">#8B8FA8</color>
+
+    <!-- Accents -->
+    <color name="green_accent">#4ADE80</color>
+    <color name="divider_color">#2A2D3E</color>
+
+    <!-- Bottom nav tint -->
+    <color name="bottom_nav_tint_selected">#C9A84C</color>
+    <color name="bottom_nav_tint_default">#5A5E72</color>
+
+    <!-- System colors required by Material -->
+    <color name="purple_200">#C9A84C</color>
+    <color name="purple_500">#C9A84C</color>
+    <color name="purple_700">#A07828</color>
+    <color name="teal_200">#4ADE80</color>
+    <color name="teal_700">#16A34A</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
