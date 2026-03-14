@@ -56,30 +56,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Chips مكية/مدنية -->
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupMeccan" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:layout_marginTop="10dp"
-                app:singleSelection="true" app:selectionRequired="true"
-                android:layoutDirection="rtl">
-
-                <com.google.android.material.chip.Chip android:id="@+id/chipMeccan"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="مكية" android:checked="true"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    app:chipBackgroundColor="@color/chip_bg_selector"
-                    android:textColor="@color/text_primary"
-                    app:checkedIconTint="@color/gold_primary"/>
-
-                <com.google.android.material.chip.Chip android:id="@+id/chipMadani"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="مدنية"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    app:chipBackgroundColor="@color/chip_bg_selector"
-                    android:textColor="@color/text_primary"
-                    app:checkedIconTint="@color/gold_primary"/>
-            </com.google.android.material.chip.ChipGroup>
-
             <!-- جزء + ربع الحزب + الصفحة -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:layout_marginTop="10dp">
@@ -153,8 +129,7 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
-                app:boxStrokeColor="@color/gold_dim"
-                android:hint="الصق نص السورة (مع ۝ أو ﴿﴾)">
+                app:boxStrokeColor="@color/gold_dim" android:hint="الصق نص السورة (مع ۝ أو ﴿﴾)">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etRawText" android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:minLines="5" android:maxLines="10"
