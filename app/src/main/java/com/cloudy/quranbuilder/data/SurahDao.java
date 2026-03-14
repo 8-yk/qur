@@ -1,11 +1,6 @@
 package com.cloudy.quranbuilder.data;
 
-import androidx.lifecycle.LiveData;
-import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-
+import androidx.room.*;
 import java.util.List;
 
 @Dao
@@ -15,10 +10,10 @@ public interface SurahDao {
     void insertSurah(SurahEntity surah);
 
     @Query("SELECT * FROM surahs ORDER BY number ASC")
-    LiveData<List<SurahEntity>> getAllSurahs();
-
-    @Query("SELECT * FROM surahs ORDER BY number ASC")
     List<SurahEntity> getAllSurahsSync();
+
+    @Query("SELECT * FROM surahs WHERE number = :number LIMIT 1")
+    SurahEntity getByNumber(int number);
 
     @Query("SELECT COUNT(*) FROM surahs")
     int getSurahCount();

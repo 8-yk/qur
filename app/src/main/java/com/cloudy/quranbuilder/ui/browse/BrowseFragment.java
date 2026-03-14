@@ -1,85 +1,93 @@
 package com.cloudy.quranbuilder.ui.browse;
 
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.text.*;
+import android.view.*;
+import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
-
 import com.cloudy.quranbuilder.MainActivity;
-import com.cloudy.quranbuilder.data.AppDatabase;
+import com.cloudy.quranbuilder.data.*;
 import com.cloudy.quranbuilder.databinding.FragmentBrowseBinding;
 import com.cloudy.quranbuilder.model.SurahInfo;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 
 public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClickListener {
 
     private FragmentBrowseBinding binding;
     private SurahAdapter adapter;
-    private Set<Integer> surahsWithData = new HashSet<>();
+    private Map<Integer, AyahDao.SurahStat> statsMap  = new HashMap<>();
+    private Map<Integer, SurahEntity>       dbSurahMap = new HashMap<>();
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = FragmentBrowseBinding.inflate(inflater, container, false);
+    public View onCreateView(@NonNull LayoutInflater i, ViewGroup c, Bundle s) {
+        binding = FragmentBrowseBinding.inflate(i, c, false);
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle s) {
+        super.onViewCreated(view, s);
 
         adapter = new SurahAdapter(this);
         binding.recyclerSurahs.setAdapter(adapter);
 
         binding.searchInput.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             @Override public void afterTextChanged(Editable s) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void onTextChanged(CharSequence s, int st, int b, int co) {
                 filterSurahs(s.toString());
             }
+        });
+
+        // FAB إضافة سورة
+        binding.fabAddSurah.setOnClickListener(v -> {
+            AddSurahSheet sheet = new AddSurahSheet();
+            sheet.setOnSurahAddedListener(() -> loadData());
+            sheet.show(getParentFragmentManager(), "add_surah");
         });
 
         loadData();
     }
 
-    // onResume لا يستدعي loadData لتفادي التحميل المزدوج
-    // سيُحدَّث التطبيق عند العودة من AyahsFragment عبر onViewCreated
+    @Override
+    public void onResume() { super.onResume(); loadData(); }
 
     private void loadData() {
         if (!isAdded()) return;
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(requireContext());
-            List<Integer> numbersWithData = db.ayahDao().getSurahNumbersWithData();
-            Set<Integer> withData = new HashSet<>(numbersWithData);
 
-            List<SurahAdapter.SurahRow> rows = buildRows(SurahInfo.ALL_SURAHS, withData, "");
+            List<AyahDao.SurahStat> stats = db.ayahDao().getSurahStats();
+            Map<Integer, AyahDao.SurahStat> sm = new HashMap<>();
+            for (AyahDao.SurahStat s : stats) sm.put(s.surahNumber, s);
 
-            if (!isAdded() || binding == null) return;  // ← guard
+            List<SurahEntity> dbSurahs = db.surahDao().getAllSurahsSync();
+            Map<Integer, SurahEntity> dm = new HashMap<>();
+            for (SurahEntity s : dbSurahs) dm.put(s.number, s);
+
+            int totalAyahs  = db.ayahDao().getTotalAyahCount();
+            int totalSurahs = dm.size();
+
+            List<SurahAdapter.SurahRow> rows = buildRows(sm, dm, "");
+
+            if (!isAdded() || binding == null) return;
             requireActivity().runOnUiThread(() -> {
                 if (binding == null) return;
-                surahsWithData = withData;
+                statsMap   = sm;
+                dbSurahMap = dm;
                 adapter.submitList(rows);
-                updateStats(withData);
+                binding.tvStats.setText(totalSurahs + " سورة · " + totalAyahs + " آية محفوظة");
             });
         });
     }
 
     private void filterSurahs(String query) {
         if (!isAdded()) return;
-        final Set<Integer> snapshot = new HashSet<>(surahsWithData);
+        final Map<Integer, AyahDao.SurahStat> sm = new HashMap<>(statsMap);
+        final Map<Integer, SurahEntity>       dm = new HashMap<>(dbSurahMap);
         Executors.newSingleThreadExecutor().execute(() -> {
-            List<SurahAdapter.SurahRow> rows = buildRows(SurahInfo.ALL_SURAHS, snapshot, query.trim());
+            List<SurahAdapter.SurahRow> rows = buildRows(sm, dm, query.trim());
             if (!isAdded() || binding == null) return;
             requireActivity().runOnUiThread(() -> {
                 if (binding == null) return;
@@ -88,41 +96,35 @@ public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClic
         });
     }
 
-    private List<SurahAdapter.SurahRow> buildRows(SurahInfo[] surahs, Set<Integer> withData, String query) {
+    private List<SurahAdapter.SurahRow> buildRows(
+            Map<Integer, AyahDao.SurahStat> stats,
+            Map<Integer, SurahEntity> dbMap,
+            String query) {
+
         List<SurahAdapter.SurahRow> rows = new ArrayList<>();
-        for (SurahInfo info : surahs) {
-            if (!query.isEmpty() && !info.name.contains(query) &&
-                !String.valueOf(info.number).contains(query)) continue;
-            rows.add(new SurahAdapter.SurahRow(info, withData.contains(info.number)));
+        for (SurahInfo info : SurahInfo.ALL_SURAHS) {
+            SurahEntity dbS = dbMap.get(info.number);
+            if (!query.isEmpty()
+                    && !info.name.contains(query)
+                    && !String.valueOf(info.number).contains(query)) continue;
+
+            AyahDao.SurahStat stat = stats.get(info.number);
+            int savedCount   = stat != null ? stat.count  : 0;
+            int minJuz       = stat != null ? stat.minJuz : 0;
+            boolean isMeccan = dbS != null ? dbS.isMeccan : info.isMeccan;
+            int ayahsInSurah = dbS != null ? dbS.ayahsInSurah : info.totalAyahs;
+            boolean inDb     = dbS != null;
+
+            rows.add(new SurahAdapter.SurahRow(info, savedCount, minJuz, isMeccan, ayahsInSurah, inDb));
         }
         return rows;
     }
 
-    private void updateStats(Set<Integer> withData) {
-        if (!isAdded()) return;
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(requireContext());
-            int totalAyahs = db.ayahDao().getTotalAyahCount();
-            int totalSurahs = withData.size();
-
-            if (!isAdded() || binding == null) return;
-            requireActivity().runOnUiThread(() -> {
-                if (binding == null) return;
-                binding.tvStats.setText(totalSurahs + " سورة · " + totalAyahs + " آية محفوظة");
-            });
-        });
-    }
-
     @Override
     public void onSurahClick(SurahInfo surahInfo) {
-        if (getActivity() instanceof MainActivity) {
+        if (getActivity() instanceof MainActivity)
             ((MainActivity) getActivity()).openAyahsScreen(surahInfo.number, surahInfo.name);
-        }
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
+    @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
 }

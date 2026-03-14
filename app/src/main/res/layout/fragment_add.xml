@@ -1,287 +1,218 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:layoutDirection="rtl"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:layoutDirection="rtl"
     android:background="@color/bg_primary">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/bg_surface"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="52dp"
-        android:paddingBottom="16dp"
-        android:elevation="4dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="بناء البيانات"
-            android:textColor="@color/gold_primary"
-            android:textSize="22sp"
-            android:fontFamily="serif" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="الصق نص القرآن لتحليله وحفظه"
-            android:textColor="@color/text_secondary"
-            android:textSize="13sp"
-            android:layout_marginTop="2dp" />
+    <!-- Header -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:background="@color/bg_surface"
+        android:paddingHorizontal="20dp" android:paddingTop="52dp"
+        android:paddingBottom="16dp" android:elevation="4dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="إضافة آيات" android:textColor="@color/gold_primary"
+            android:textSize="22sp" android:fontFamily="serif"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="اختر سورة مضافة ثم الصق النص"
+            android:textColor="@color/text_secondary" android:textSize="13sp"
+            android:layout_marginTop="2dp"/>
     </LinearLayout>
 
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="16dp">
+    <androidx.core.widget.NestedScrollView android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- اختيار السورة -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxStrokeColor="@color/gold_dim"
-                android:hint="اختر السورة">
+            <!-- زر اختيار السورة -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                app:cardCornerRadius="14dp" app:cardBackgroundColor="@color/bg_card"
+                app:cardElevation="2dp" app:strokeWidth="1dp" app:strokeColor="@color/gold_dim">
 
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/dropdownSurah"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                <LinearLayout android:id="@+id/btnPickSurah"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp" android:paddingVertical="14dp"
+                    android:background="?attr/selectableItemBackground">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="السورة المختارة" android:textColor="@color/text_secondary"
+                            android:textSize="11sp"/>
+                        <TextView android:id="@+id/tvSelectedSurah"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="اضغط لاختيار سورة"
+                            android:textColor="@color/text_primary" android:textSize="16sp"
+                            android:fontFamily="serif" android:textStyle="bold"
+                            android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="تغيير ›" android:textColor="@color/gold_primary"
+                        android:textSize="13sp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Chips مكية/مدنية -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupMeccan" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                app:singleSelection="true" app:selectionRequired="true"
+                android:layoutDirection="rtl">
+
+                <com.google.android.material.chip.Chip android:id="@+id/chipMeccan"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="مكية" android:checked="true"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    app:chipBackgroundColor="@color/chip_bg_selector"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:gravity="end" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    app:checkedIconTint="@color/gold_primary"/>
 
-            <!-- الجزء + رقم أول آية -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="10dp">
+                <com.google.android.material.chip.Chip android:id="@+id/chipMadani"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="مدنية"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    app:chipBackgroundColor="@color/chip_bg_selector"
+                    android:textColor="@color/text_primary"
+                    app:checkedIconTint="@color/gold_primary"/>
+            </com.google.android.material.chip.ChipGroup>
+
+            <!-- جزء + ربع الحزب + الصفحة -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="5dp"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginEnd="4dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/gold_dim"
-                    android:hint="الجزء (1-30)">
-
+                    app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="@color/gold_dim" android:hint="الجزء">
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etJuz"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"
-                        android:textColor="@color/text_primary"
-                        android:gravity="center" />
+                        android:id="@+id/etJuz" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:inputType="number"
+                        android:textColor="@color/text_primary" android:gravity="center"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="5dp"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginHorizontal="4dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/gold_dim"
-                    android:hint="ربع الحزب في الجزء (1-8)">
-
+                    app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="@color/gold_dim" android:hint="ربع الحزب (1-8)">
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etHizbQuarterInJuz"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"
-                        android:textColor="@color/text_primary"
-                        android:gravity="center" />
+                        android:id="@+id/etHizbQuarterInJuz" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:inputType="number"
+                        android:textColor="@color/text_primary" android:gravity="center"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="4dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="@color/gold_dim" android:hint="رقم الصفحة">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPage" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:inputType="number"
+                        android:textColor="@color/text_primary" android:gravity="center"/>
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- نتيجة حساب الحزب تلقائياً -->
-            <TextView
-                android:id="@+id/tvCalcHizb"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text=""
-                android:textColor="@color/gold_primary"
-                android:textSize="13sp"
-                android:gravity="center"
-                android:background="@color/bg_card"
-                android:paddingVertical="8dp"
-                android:paddingHorizontal="12dp"
-                android:visibility="gone" />
+            <!-- نتيجة الحزب -->
+            <TextView android:id="@+id/tvCalcHizb" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:textColor="@color/gold_primary" android:textSize="13sp"
+                android:gravity="center" android:background="@color/bg_card"
+                android:paddingVertical="8dp" android:paddingHorizontal="12dp"
+                android:visibility="gone"/>
 
             <!-- رقم أول آية -->
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxStrokeColor="@color/gold_dim"
-                android:hint="رقم الآية الأولى (للنمط الاحتياطي)">
-
+                app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
+                app:boxStrokeColor="@color/gold_dim" android:hint="رقم الآية الأولى (للنمط الاحتياطي)">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etStartAyah"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:text="1"
-                    android:textColor="@color/text_primary"
-                    android:gravity="end" />
+                    android:id="@+id/etStartAyah" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="number"
+                    android:text="1" android:textColor="@color/text_primary" android:gravity="end"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- صندوق النص -->
+            <!-- النص -->
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
                 app:boxStrokeColor="@color/gold_dim"
-                android:hint="الصق نص السورة هنا (مع رمز ۝ أو ﴿﴾)">
-
+                android:hint="الصق نص السورة (مع ۝ أو ﴿﴾)">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etRawText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minLines="5"
-                    android:maxLines="10"
-                    android:inputType="textMultiLine"
-                    android:gravity="end|top"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="serif"
-                    android:lineSpacingMultiplier="1.5" />
+                    android:id="@+id/etRawText" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:minLines="5" android:maxLines="10"
+                    android:inputType="textMultiLine" android:gravity="end|top"
+                    android:textColor="@color/text_primary" android:textSize="15sp"
+                    android:fontFamily="serif" android:lineSpacingMultiplier="1.5"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- أزرار التحليل -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="10dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnParse"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:text="تحليل النص"
-                    app:cornerRadius="12dp"
+            <!-- أزرار -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnParse"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginEnd="6dp"
+                    android:text="تحليل" app:cornerRadius="12dp"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:strokeColor="@color/gold_primary"
-                    android:textColor="@color/gold_primary" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnClear"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:text="مسح"
-                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/gold_primary" android:textColor="@color/gold_primary"/>
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnClear"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="6dp"
+                    android:text="مسح" app:cornerRadius="12dp"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
-            <!-- عداد -->
-            <TextView
-                android:id="@+id/tvPreviewCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="لا يوجد آيات محللة"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+            <TextView android:id="@+id/tvPreviewCount"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:text="لا يوجد آيات محللة"
+                android:textColor="@color/text_secondary" android:textSize="13sp"/>
 
-            <!-- معاينة -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                app:cardCornerRadius="14dp"
-                app:cardBackgroundColor="@color/bg_card"
+            <androidx.cardview.widget.CardView android:id="@+id/cardPreview"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:visibility="gone"
+                app:cardCornerRadius="14dp" app:cardBackgroundColor="@color/bg_card"
                 app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="معاينة الآيات"
-                        android:textColor="@color/gold_primary"
-                        android:textSize="13sp"
-                        android:paddingHorizontal="8dp"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="8dp" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="8dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="معاينة الآيات" android:textColor="@color/gold_primary"
+                        android:textSize="13sp" android:paddingHorizontal="8dp"
+                        android:paddingTop="4dp" android:paddingBottom="8dp"/>
+                    <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerPreview"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- زر الحفظ -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSave"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:enabled="false"
-                android:text="حفظ في قاعدة البيانات"
-                android:textSize="15sp"
-                app:cornerRadius="14dp"
-                app:backgroundTint="@color/gold_primary"
-                android:textColor="@color/bg_primary" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSave"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:layout_marginBottom="8dp"
+                android:enabled="false" android:text="حفظ في قاعدة البيانات"
+                android:textSize="15sp" app:cornerRadius="14dp"
+                app:backgroundTint="@color/gold_primary" android:textColor="@color/bg_primary"/>
 
-            <ProgressBar
-                android:id="@+id/progressSave"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:visibility="gone" />
+            <ProgressBar android:id="@+id/progressSave"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal" android:visibility="gone"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

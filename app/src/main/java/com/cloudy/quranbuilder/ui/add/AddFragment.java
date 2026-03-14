@@ -1,164 +1,133 @@
 package com.cloudy.quranbuilder.ui.add;
 
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.text.*;
+import android.view.*;
+import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
-
-import com.cloudy.quranbuilder.data.AppDatabase;
-import com.cloudy.quranbuilder.data.AyahEntity;
-import com.cloudy.quranbuilder.data.SurahEntity;
+import com.cloudy.quranbuilder.R;
+import com.cloudy.quranbuilder.data.*;
 import com.cloudy.quranbuilder.databinding.FragmentAddBinding;
 import com.cloudy.quranbuilder.model.JsonModels;
-import com.cloudy.quranbuilder.model.SurahInfo;
 import com.cloudy.quranbuilder.utils.TextParser;
 import com.google.android.material.snackbar.Snackbar;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 
 public class AddFragment extends Fragment {
 
     private FragmentAddBinding binding;
-    private ParsedAyahAdapter previewAdapter;
+    private ParsedAyahAdapter  previewAdapter;
     private List<JsonModels.AyahJson> parsedAyahs = new ArrayList<>();
 
-    // ─── الحالة الحالية ────────────────────────────────────────
-    private int selectedSurahNumber = 1;
-    private int calculatedJuz       = 0;
-    private int calculatedHizb      = 0;
-    private int calculatedHizbQ     = 0; // ربع الحزب 1-4
+    private int     selectedSurahNumber = -1; // -1 = لم يُختر بعد
+    private boolean selectedIsMeccan    = true;
+    private int     selectedAyahsInSurah= 0;
+    private int calculatedJuz   = 0;
+    private int calculatedHizb  = 0;
+    private int calculatedHizbQ = 0;
+    private int enteredPage     = 0;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
-        binding = FragmentAddBinding.inflate(inflater, container, false);
+    public View onCreateView(@NonNull LayoutInflater i, ViewGroup c, Bundle s) {
+        binding = FragmentAddBinding.inflate(i, c, false);
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle saved) {
-        super.onViewCreated(view, saved);
-        setupSurahDropdown();
+    public void onViewCreated(@NonNull View view, @Nullable Bundle s) {
+        super.onViewCreated(view, s);
+        setupSurahPicker();
+        setupMeccanChips();
         setupPreviewList();
         setupHizbWatchers();
         setupButtons();
     }
 
-    // ─── إعداد قائمة السور ─────────────────────────────────────
-    private void setupSurahDropdown() {
-        String[] surahNames = new String[114];
-        for (int i = 0; i < 114; i++) {
-            SurahInfo info = SurahInfo.ALL_SURAHS[i];
-            surahNames[i] = info.number + " - " + info.name;
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
-                surahNames);
-
-        binding.dropdownSurah.setAdapter(adapter);
-        binding.dropdownSurah.setText(surahNames[0], false);
-        selectedSurahNumber = 1;
-
-        // ← إصلاح bug الحفظ: نأخذ الرقم من النص المختار وليس position
-        binding.dropdownSurah.setOnItemClickListener((parent, v, position, id) -> {
-            String item = (String) parent.getItemAtPosition(position);
-            try {
-                selectedSurahNumber = Integer.parseInt(item.split(" - ")[0].trim());
-            } catch (NumberFormatException ignored) {
-                selectedSurahNumber = 1;
-            }
-            reparse();
+    // ─── اختيار السورة من DB ────────────────────────────────
+    private void setupSurahPicker() {
+        binding.btnPickSurah.setOnClickListener(v -> {
+            SurahPickerBottomSheet sheet = new SurahPickerBottomSheet();
+            sheet.setOnSurahSelectedListener(surah -> {
+                selectedSurahNumber  = surah.number;
+                selectedIsMeccan     = surah.isMeccan;
+                selectedAyahsInSurah = surah.ayahsInSurah;
+                binding.tvSelectedSurah.setText(surah.number + " - " + surah.name);
+                binding.chipMeccan.setChecked(surah.isMeccan);
+                binding.chipMadani.setChecked(!surah.isMeccan);
+                reparse();
+            });
+            sheet.show(getParentFragmentManager(), "surah_picker");
         });
     }
 
-    // ─── مراقبة حقلي الجزء وربع الحزب لحساب الحزب تلقائياً ────
-    private void setupHizbWatchers() {
-        TextWatcher watcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
-            @Override public void afterTextChanged(Editable s) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                recalcHizb();
-            }
-        };
-        binding.etJuz.addTextChangedListener(watcher);
-        binding.etHizbQuarterInJuz.addTextChangedListener(watcher);
+    // ─── Chips مكية/مدنية ───────────────────────────────────
+    private void setupMeccanChips() {
+        binding.chipGroupMeccan.setOnCheckedStateChangeListener((g, ids) ->
+                selectedIsMeccan = ids.contains(R.id.chipMeccan));
+        binding.chipMeccan.setChecked(true);
     }
 
-    /**
-     * كل جزء = 8 أرباع حزب (= 2 حزب × 4)
-     * الحزب المطلق = (الجزء-1)×2 + ceil(ربع_الحزب_في_الجزء / 4)
-     * ربع الحزب (1-4) = ((ربع_في_الجزء - 1) % 4) + 1
-     */
+    // ─── حساب الحزب + مراقبة الصفحة ─────────────────────────
+    private void setupHizbWatchers() {
+        TextWatcher hizbW = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
+            @Override public void afterTextChanged(Editable s) {}
+            @Override public void onTextChanged(CharSequence s, int st, int b, int co) { recalcHizb(); }
+        };
+        binding.etJuz.addTextChangedListener(hizbW);
+        binding.etHizbQuarterInJuz.addTextChangedListener(hizbW);
+
+        binding.etPage.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
+            @Override public void afterTextChanged(Editable s) {}
+            @Override public void onTextChanged(CharSequence s, int st, int b, int co) {
+                try { enteredPage = Integer.parseInt(s.toString().trim()); }
+                catch (NumberFormatException ignored) { enteredPage = 0; }
+            }
+        });
+    }
+
     private void recalcHizb() {
         if (binding == null) return;
         String juzStr = binding.etJuz.getText().toString().trim();
         String qStr   = binding.etHizbQuarterInJuz.getText().toString().trim();
-
         if (juzStr.isEmpty() || qStr.isEmpty()) {
             calculatedJuz = 0; calculatedHizb = 0; calculatedHizbQ = 0;
-            binding.tvCalcHizb.setVisibility(View.GONE);
-            return;
+            binding.tvCalcHizb.setVisibility(View.GONE); return;
         }
-
         try {
-            int juz = Integer.parseInt(juzStr);
-            int qInJuz = Integer.parseInt(qStr);
-
-            // التحقق من النطاقات
-            juz    = Math.max(1, Math.min(30, juz));
-            qInJuz = Math.max(1, Math.min(8, qInJuz));
-
+            int juz    = Math.max(1, Math.min(30, Integer.parseInt(juzStr)));
+            int qInJuz = Math.max(1, Math.min(8,  Integer.parseInt(qStr)));
             calculatedJuz   = juz;
             calculatedHizb  = (juz - 1) * 2 + (int) Math.ceil(qInJuz / 4.0);
             calculatedHizbQ = ((qInJuz - 1) % 4) + 1;
-
-            binding.tvCalcHizb.setText(
-                "الجزء " + calculatedJuz +
-                " · الحزب " + calculatedHizb +
-                " · ربع الحزب " + calculatedHizbQ
-            );
+            binding.tvCalcHizb.setText("الجزء " + calculatedJuz +
+                " · الحزب " + calculatedHizb + " · ربع الحزب " + calculatedHizbQ);
             binding.tvCalcHizb.setVisibility(View.VISIBLE);
-
         } catch (NumberFormatException ignored) {
             binding.tvCalcHizb.setVisibility(View.GONE);
         }
     }
 
-    // ─── قائمة المعاينة ─────────────────────────────────────────
     private void setupPreviewList() {
         previewAdapter = new ParsedAyahAdapter();
         binding.recyclerPreview.setAdapter(previewAdapter);
     }
 
-    // ─── الأزرار ────────────────────────────────────────────────
     private void setupButtons() {
         binding.etRawText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
             @Override public void afterTextChanged(Editable s) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void onTextChanged(CharSequence s, int st, int b, int co) {
                 if (s.length() > 5) reparse();
                 else { parsedAyahs.clear(); previewAdapter.submitList(new ArrayList<>()); updatePreviewState(); }
             }
         });
-
         binding.btnParse.setOnClickListener(v -> reparse());
         binding.btnClear.setOnClickListener(v -> {
             binding.etRawText.setText("");
-            parsedAyahs.clear();
-            previewAdapter.submitList(new ArrayList<>());
-            updatePreviewState();
+            parsedAyahs.clear(); previewAdapter.submitList(new ArrayList<>()); updatePreviewState();
         });
         binding.btnSave.setOnClickListener(v -> saveToDatabase());
     }
@@ -167,13 +136,11 @@ public class AddFragment extends Fragment {
         if (binding == null) return;
         String text = binding.etRawText.getText().toString().trim();
         if (text.isEmpty()) return;
-
         int startAyah = 1;
         try {
             String s = binding.etStartAyah.getText().toString().trim();
             if (!s.isEmpty()) startAyah = Integer.parseInt(s);
         } catch (NumberFormatException ignored) {}
-
         parsedAyahs = TextParser.parseText(text, startAyah);
         previewAdapter.submitList(new ArrayList<>(parsedAyahs));
         updatePreviewState();
@@ -181,41 +148,46 @@ public class AddFragment extends Fragment {
 
     private void updatePreviewState() {
         if (binding == null) return;
-        if (parsedAyahs.isEmpty()) {
+        boolean hasSurah = selectedSurahNumber > 0;
+        boolean hasAyahs = !parsedAyahs.isEmpty();
+        if (!hasAyahs) {
             binding.tvPreviewCount.setText("لا يوجد آيات محللة");
             binding.btnSave.setEnabled(false);
             binding.cardPreview.setVisibility(View.GONE);
         } else {
             binding.tvPreviewCount.setText("تم تحليل " + parsedAyahs.size() + " آية");
-            binding.btnSave.setEnabled(true);
+            binding.btnSave.setEnabled(hasSurah);
             binding.cardPreview.setVisibility(View.VISIBLE);
         }
+        if (!hasSurah && hasAyahs)
+            binding.tvPreviewCount.setText("تم تحليل " + parsedAyahs.size() + " آية — اختر سورة أولاً");
     }
 
     private void saveToDatabase() {
-        if (parsedAyahs.isEmpty() || !isAdded() || binding == null) return;
-
+        if (parsedAyahs.isEmpty() || selectedSurahNumber < 1 || !isAdded() || binding == null) return;
         binding.btnSave.setEnabled(false);
         binding.progressSave.setVisibility(View.VISIBLE);
 
-        SurahInfo info = SurahInfo.getByNumber(selectedSurahNumber);
-        String surahName = info != null ? info.name : "سورة " + selectedSurahNumber;
-        int finalSurahNum = selectedSurahNumber;
-        int finalJuz      = calculatedJuz;
-        int finalHizb     = calculatedHizb;
-        int finalHizbQ    = calculatedHizbQ;
+        int finalNum     = selectedSurahNumber;
+        boolean meccan   = selectedIsMeccan;
+        int totalAyahs   = selectedAyahsInSurah;
+        int finalJuz     = calculatedJuz;
+        int finalHizb    = calculatedHizb;
+        int finalHizbQ   = calculatedHizbQ;
+        int finalPage    = enteredPage;
         List<JsonModels.AyahJson> toSave = new ArrayList<>(parsedAyahs);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(requireContext());
-            db.surahDao().insertSurah(new SurahEntity(finalSurahNum, surahName));
+            // نحدّث السورة (قد يكون تغيّر عدد الآيات)
+            SurahEntity existing = db.surahDao().getByNumber(finalNum);
+            String name = existing != null ? existing.name : "سورة " + finalNum;
+            db.surahDao().insertSurah(new SurahEntity(finalNum, name, meccan, totalAyahs));
 
             List<AyahEntity> entities = new ArrayList<>();
-            for (JsonModels.AyahJson ayah : toSave) {
-                entities.add(new AyahEntity(
-                        finalSurahNum, ayah.numberInSurah, ayah.text,
-                        finalJuz, finalHizb, finalHizbQ));
-            }
+            for (JsonModels.AyahJson a : toSave)
+                entities.add(new AyahEntity(finalNum, a.numberInSurah, a.text,
+                        finalJuz, finalHizb, finalHizbQ, finalPage));
             db.ayahDao().insertAll(entities);
 
             if (!isAdded() || binding == null) return;
@@ -223,22 +195,13 @@ public class AddFragment extends Fragment {
                 if (binding == null) return;
                 binding.progressSave.setVisibility(View.GONE);
                 binding.btnSave.setEnabled(true);
-
                 Snackbar.make(binding.getRoot(),
-                    "✓ تم حفظ " + toSave.size() + " آية من سورة " + surahName,
-                    Snackbar.LENGTH_LONG).show();
-
+                    "✓ تم حفظ " + toSave.size() + " آية", Snackbar.LENGTH_LONG).show();
                 binding.etRawText.setText("");
-                parsedAyahs.clear();
-                previewAdapter.submitList(new ArrayList<>());
-                updatePreviewState();
+                parsedAyahs.clear(); previewAdapter.submitList(new ArrayList<>()); updatePreviewState();
             });
         });
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
+    @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
 }

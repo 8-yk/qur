@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:layoutDirection="rtl"
+    android:background="@color/bg_surface">
+
+    <View android:layout_width="40dp" android:layout_height="4dp"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="10dp"
+        android:background="@color/text_secondary" android:alpha="0.4"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingHorizontal="20dp" android:paddingTop="10dp" android:paddingBottom="6dp">
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="إضافة آيات إلى" android:textColor="@color/text_secondary" android:textSize="12sp"/>
+            <TextView android:id="@+id/tvQuickAddSurahName"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/gold_primary" android:textSize="18sp"
+                android:fontFamily="serif" android:textStyle="bold"/>
+        </LinearLayout>
+
+        <ImageButton android:id="@+id/btnQuickAddClose"
+            android:layout_width="36dp" android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:tint="@color/text_secondary"/>
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:background="@color/divider_color" android:layout_marginBottom="10dp"/>
+
+    <!-- صف: جزء + ربع الحزب + صفحة + أول آية -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:paddingHorizontal="14dp"
+        android:layout_marginBottom="8dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:layout_marginEnd="4dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            app:boxCornerRadiusTopStart="10dp" app:boxCornerRadiusTopEnd="10dp"
+            app:boxCornerRadiusBottomStart="10dp" app:boxCornerRadiusBottomEnd="10dp"
+            app:boxStrokeColor="@color/gold_dim" android:hint="الجزء">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etQuickJuz" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="number"
+                android:textColor="@color/text_primary" android:gravity="center"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:layout_marginHorizontal="4dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            app:boxCornerRadiusTopStart="10dp" app:boxCornerRadiusTopEnd="10dp"
+            app:boxCornerRadiusBottomStart="10dp" app:boxCornerRadiusBottomEnd="10dp"
+            app:boxStrokeColor="@color/gold_dim" android:hint="ر.الحزب (1-8)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etQuickHizbQ" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="number"
+                android:textColor="@color/text_primary" android:gravity="center"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:layout_marginHorizontal="4dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            app:boxCornerRadiusTopStart="10dp" app:boxCornerRadiusTopEnd="10dp"
+            app:boxCornerRadiusBottomStart="10dp" app:boxCornerRadiusBottomEnd="10dp"
+            app:boxStrokeColor="@color/gold_dim" android:hint="الصفحة">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etQuickPage" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="number"
+                android:textColor="@color/text_primary" android:gravity="center"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:layout_marginStart="4dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            app:boxCornerRadiusTopStart="10dp" app:boxCornerRadiusTopEnd="10dp"
+            app:boxCornerRadiusBottomStart="10dp" app:boxCornerRadiusBottomEnd="10dp"
+            app:boxStrokeColor="@color/gold_dim" android:hint="أول آية">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etQuickStartAyah" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="number"
+                android:text="1" android:textColor="@color/text_primary" android:gravity="center"/>
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <!-- نص الآيات -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingHorizontal="14dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
+        app:boxStrokeColor="@color/gold_dim" android:hint="الصق النص (مع ۝ أو ﴿﴾)">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etQuickText" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:minLines="4" android:maxLines="8"
+            android:inputType="textMultiLine" android:gravity="end|top"
+            android:textColor="@color/text_primary" android:textSize="15sp"
+            android:fontFamily="serif" android:lineSpacingMultiplier="1.5"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- عداد + زر الحفظ -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingHorizontal="16dp" android:paddingTop="10dp" android:paddingBottom="24dp">
+
+        <TextView android:id="@+id/tvQuickCount"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:textColor="@color/text_secondary"
+            android:textSize="13sp" android:text="لا يوجد آيات محللة"/>
+
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnQuickSave"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="حفظ" android:enabled="false" app:cornerRadius="12dp"
+            app:backgroundTint="@color/gold_primary" android:textColor="@color/bg_primary"
+            android:paddingHorizontal="24dp"/>
+    </LinearLayout>
+
+</LinearLayout>

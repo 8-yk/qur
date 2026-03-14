@@ -21,31 +21,22 @@ public class AyahEntity {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
-    @ColumnInfo(name = "surah_number")
-    public int surahNumber;
-
-    @ColumnInfo(name = "number_in_surah")
-    public int numberInSurah;
-
-    @ColumnInfo(name = "text")
-    public String text;
-
-    @ColumnInfo(name = "juz", defaultValue = "0")
-    public int juz;
-
-    @ColumnInfo(name = "hizb", defaultValue = "0")
-    public int hizb;
-
-    @ColumnInfo(name = "hizb_quarter", defaultValue = "0")
-    public int hizbQuarter;
+    @ColumnInfo(name = "surah_number")    public int surahNumber;
+    @ColumnInfo(name = "number_in_surah") public int numberInSurah;
+    @ColumnInfo(name = "text")            public String text;
+    @ColumnInfo(name = "juz",          defaultValue = "0") public int juz;
+    @ColumnInfo(name = "hizb",         defaultValue = "0") public int hizb;
+    @ColumnInfo(name = "hizb_quarter", defaultValue = "0") public int hizbQuarter;
+    @ColumnInfo(name = "page",         defaultValue = "0") public int page;
 
     public AyahEntity(int surahNumber, int numberInSurah, String text,
-                      int juz, int hizb, int hizbQuarter) {
-        this.surahNumber  = surahNumber;
+                      int juz, int hizb, int hizbQuarter, int page) {
+        this.surahNumber   = surahNumber;
         this.numberInSurah = numberInSurah;
         this.text          = text;
         this.juz           = juz;
         this.hizb          = hizb;
         this.hizbQuarter   = hizbQuarter;
+        this.page          = page;
     }
 }

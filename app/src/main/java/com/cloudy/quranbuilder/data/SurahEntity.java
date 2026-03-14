@@ -14,8 +14,18 @@ public class SurahEntity {
     @ColumnInfo(name = "name")
     public String name;
 
-    public SurahEntity(int number, String name) {
-        this.number = number;
-        this.name = name;
+    /** true = مكية، false = مدنية */
+    @ColumnInfo(name = "is_meccan", defaultValue = "1")
+    public boolean isMeccan;
+
+    /** عدد الآيات الكلي في السورة (يُدخله المستخدم عند إضافة السورة) */
+    @ColumnInfo(name = "ayahs_in_surah", defaultValue = "0")
+    public int ayahsInSurah;
+
+    public SurahEntity(int number, String name, boolean isMeccan, int ayahsInSurah) {
+        this.number        = number;
+        this.name          = name;
+        this.isMeccan      = isMeccan;
+        this.ayahsInSurah  = ayahsInSurah;
     }
 }
