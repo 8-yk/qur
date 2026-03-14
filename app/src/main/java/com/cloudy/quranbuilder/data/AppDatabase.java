@@ -1,8 +1,12 @@
 package com.cloudy.quranbuilder.data;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
-import androidx.room.*;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 @Database(entities = {SurahEntity.class, AyahEntity.class}, version = 4, exportSchema = false)
@@ -20,11 +24,13 @@ public abstract class AppDatabase extends RoomDatabase {
             db.execSQL("ALTER TABLE ayahs ADD COLUMN hizb_quarter INTEGER NOT NULL DEFAULT 0");
         }
     };
+
     static final Migration M_2_3 = new Migration(2, 3) {
         @Override public void migrate(@NonNull SupportSQLiteDatabase db) {
             db.execSQL("ALTER TABLE surahs ADD COLUMN is_meccan INTEGER NOT NULL DEFAULT 1");
         }
     };
+
     static final Migration M_3_4 = new Migration(3, 4) {
         @Override public void migrate(@NonNull SupportSQLiteDatabase db) {
             db.execSQL("ALTER TABLE surahs ADD COLUMN ayahs_in_surah INTEGER NOT NULL DEFAULT 0");
