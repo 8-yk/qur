@@ -5,7 +5,6 @@ import android.text.*;
 import android.view.*;
 import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
-import com.cloudy.quranbuilder.R;
 import com.cloudy.quranbuilder.data.*;
 import com.cloudy.quranbuilder.databinding.FragmentAddBinding;
 import com.cloudy.quranbuilder.model.JsonModels;
@@ -20,9 +19,7 @@ public class AddFragment extends Fragment {
     private ParsedAyahAdapter  previewAdapter;
     private List<JsonModels.AyahJson> parsedAyahs = new ArrayList<>();
 
-    private int     selectedSurahNumber = -1; // -1 = لم يُختر بعد
-    private boolean selectedIsMeccan    = true;
-    private int     selectedAyahsInSurah= 0;
+    private int selectedSurahNumber = -1;
     private int calculatedJuz   = 0;
     private int calculatedHizb  = 0;
     private int calculatedHizbQ = 0;
@@ -38,37 +35,25 @@ public class AddFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle s) {
         super.onViewCreated(view, s);
         setupSurahPicker();
-        setupMeccanChips();
         setupPreviewList();
         setupHizbWatchers();
         setupButtons();
     }
 
-    // ─── اختيار السورة من DB ────────────────────────────────
+    // ─── اختيار السورة من DB ──────────────────────────────────
     private void setupSurahPicker() {
         binding.btnPickSurah.setOnClickListener(v -> {
             SurahPickerBottomSheet sheet = new SurahPickerBottomSheet();
             sheet.setOnSurahSelectedListener(surah -> {
-                selectedSurahNumber  = surah.number;
-                selectedIsMeccan     = surah.isMeccan;
-                selectedAyahsInSurah = surah.ayahsInSurah;
+                selectedSurahNumber = surah.number;
                 binding.tvSelectedSurah.setText(surah.number + " - " + surah.name);
-                binding.chipMeccan.setChecked(surah.isMeccan);
-                binding.chipMadani.setChecked(!surah.isMeccan);
                 reparse();
             });
             sheet.show(getParentFragmentManager(), "surah_picker");
         });
     }
 
-    // ─── Chips مكية/مدنية ───────────────────────────────────
-    private void setupMeccanChips() {
-        binding.chipGroupMeccan.setOnCheckedStateChangeListener((g, ids) ->
-                selectedIsMeccan = ids.contains(R.id.chipMeccan));
-        binding.chipMeccan.setChecked(true);
-    }
-
-    // ─── حساب الحزب + مراقبة الصفحة ─────────────────────────
+    // ─── حساب الحزب + مراقبة الصفحة ──────────────────────────
     private void setupHizbWatchers() {
         TextWatcher hizbW = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
@@ -94,7 +79,8 @@ public class AddFragment extends Fragment {
         String qStr   = binding.etHizbQuarterInJuz.getText().toString().trim();
         if (juzStr.isEmpty() || qStr.isEmpty()) {
             calculatedJuz = 0; calculatedHizb = 0; calculatedHizbQ = 0;
-            binding.tvCalcHizb.setVisibility(View.GONE); return;
+            binding.tvCalcHizb.setVisibility(View.GONE);
+            return;
         }
         try {
             int juz    = Math.max(1, Math.min(30, Integer.parseInt(juzStr)));
@@ -102,19 +88,21 @@ public class AddFragment extends Fragment {
             calculatedJuz   = juz;
             calculatedHizb  = (juz - 1) * 2 + (int) Math.ceil(qInJuz / 4.0);
             calculatedHizbQ = ((qInJuz - 1) % 4) + 1;
-            binding.tvCalcHizb.setText("الجزء " + calculatedJuz +
-                " · الحزب " + calculatedHizb + " · ربع الحزب " + calculatedHizbQ);
+            binding.tvCalcHizb.setText("الجزء " + calculatedJuz
+                + " · الحزب " + calculatedHizb + " · ربع الحزب " + calculatedHizbQ);
             binding.tvCalcHizb.setVisibility(View.VISIBLE);
         } catch (NumberFormatException ignored) {
             binding.tvCalcHizb.setVisibility(View.GONE);
         }
     }
 
+    // ─── قائمة المعاينة ────────────────────────────────────────
     private void setupPreviewList() {
         previewAdapter = new ParsedAyahAdapter();
         binding.recyclerPreview.setAdapter(previewAdapter);
     }
 
+    // ─── الأزرار ───────────────────────────────────────────────
     private void setupButtons() {
         binding.etRawText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
@@ -154,13 +142,15 @@ public class AddFragment extends Fragment {
             binding.tvPreviewCount.setText("لا يوجد آيات محللة");
             binding.btnSave.setEnabled(false);
             binding.cardPreview.setVisibility(View.GONE);
+        } else if (!hasSurah) {
+            binding.tvPreviewCount.setText("تم تحليل " + parsedAyahs.size() + " آية — اختر سورة أولاً");
+            binding.btnSave.setEnabled(false);
+            binding.cardPreview.setVisibility(View.VISIBLE);
         } else {
             binding.tvPreviewCount.setText("تم تحليل " + parsedAyahs.size() + " آية");
-            binding.btnSave.setEnabled(hasSurah);
+            binding.btnSave.setEnabled(true);
             binding.cardPreview.setVisibility(View.VISIBLE);
         }
-        if (!hasSurah && hasAyahs)
-            binding.tvPreviewCount.setText("تم تحليل " + parsedAyahs.size() + " آية — اختر سورة أولاً");
     }
 
     private void saveToDatabase() {
@@ -168,21 +158,21 @@ public class AddFragment extends Fragment {
         binding.btnSave.setEnabled(false);
         binding.progressSave.setVisibility(View.VISIBLE);
 
-        int finalNum     = selectedSurahNumber;
-        boolean meccan   = selectedIsMeccan;
-        int totalAyahs   = selectedAyahsInSurah;
-        int finalJuz     = calculatedJuz;
-        int finalHizb    = calculatedHizb;
-        int finalHizbQ   = calculatedHizbQ;
-        int finalPage    = enteredPage;
-        List<JsonModels.AyahJson> toSave = new ArrayList<>(parsedAyahs);
+        final int finalNum  = selectedSurahNumber;
+        final int finalJuz  = calculatedJuz;
+        final int finalHizb = calculatedHizb;
+        final int finalHizbQ= calculatedHizbQ;
+        final int finalPage = enteredPage;
+        final List<JsonModels.AyahJson> toSave = new ArrayList<>(parsedAyahs);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(requireContext());
-            // نحدّث السورة (قد يكون تغيّر عدد الآيات)
+            // نجلب السورة الموجودة للحفاظ على isMeccan واسمها
             SurahEntity existing = db.surahDao().getByNumber(finalNum);
-            String name = existing != null ? existing.name : "سورة " + finalNum;
-            db.surahDao().insertSurah(new SurahEntity(finalNum, name, meccan, totalAyahs));
+            if (existing != null) {
+                // نُعيد حفظها كما هي (لا نغيّر شيئاً)
+                db.surahDao().insertSurah(existing);
+            }
 
             List<AyahEntity> entities = new ArrayList<>();
             for (JsonModels.AyahJson a : toSave)
