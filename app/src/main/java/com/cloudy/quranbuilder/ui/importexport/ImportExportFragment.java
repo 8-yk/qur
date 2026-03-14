@@ -26,7 +26,6 @@ public class ImportExportFragment extends Fragment {
 
     private FragmentImportExportBinding binding;
 
-    // SAF launchers — لا تحتاج أي صلاحيات
     private final ActivityResultLauncher<Intent> exportLauncher = registerForActivityResult(
         new ActivityResultContracts.StartActivityForResult(),
         result -> {
@@ -64,26 +63,24 @@ public class ImportExportFragment extends Fragment {
         loadStats();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadStats();
-    }
+    // حذف onResume لتفادي التحميل المزدوج — loadStats يُستدعى من onViewCreated فقط
 
     private void loadStats() {
+        if (!isAdded()) return;
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(requireContext());
             int totalSurahs = db.surahDao().getSurahCount();
             int totalAyahs  = db.ayahDao().getTotalAyahCount();
 
+            if (!isAdded() || binding == null) return;
             requireActivity().runOnUiThread(() -> {
+                if (binding == null) return;
                 binding.tvStatSurahs.setText(String.valueOf(totalSurahs));
                 binding.tvStatAyahs.setText(String.valueOf(totalAyahs));
 
                 int progress = (int) Math.round(totalSurahs / 114.0 * 100);
                 binding.progressCompletion.setProgress(progress);
                 binding.tvProgressLabel.setText(progress + "% مكتمل");
-
                 binding.btnExport.setEnabled(totalAyahs > 0);
             });
         });
@@ -105,19 +102,24 @@ public class ImportExportFragment extends Fragment {
     }
 
     private void performExport(Uri uri) {
+        if (!isAdded() || binding == null) return;
         binding.btnExport.setEnabled(false);
         binding.progressExport.setVisibility(View.VISIBLE);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 JsonHelper.exportToUri(requireContext(), uri);
+                if (!isAdded() || binding == null) return;
                 requireActivity().runOnUiThread(() -> {
+                    if (binding == null) return;
                     binding.progressExport.setVisibility(View.GONE);
                     binding.btnExport.setEnabled(true);
                     Snackbar.make(binding.getRoot(), "✓ تم التصدير بنجاح", Snackbar.LENGTH_LONG).show();
                 });
             } catch (Exception e) {
+                if (!isAdded() || binding == null) return;
                 requireActivity().runOnUiThread(() -> {
+                    if (binding == null) return;
                     binding.progressExport.setVisibility(View.GONE);
                     binding.btnExport.setEnabled(true);
                     Snackbar.make(binding.getRoot(), "✗ فشل التصدير: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
@@ -127,24 +129,27 @@ public class ImportExportFragment extends Fragment {
     }
 
     private void performImport(Uri uri) {
+        if (!isAdded() || binding == null) return;
         binding.btnImport.setEnabled(false);
         binding.progressImport.setVisibility(View.VISIBLE);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 JsonHelper.ImportResult result = JsonHelper.importFromUri(requireContext(), uri);
+                if (!isAdded() || binding == null) return;
                 requireActivity().runOnUiThread(() -> {
+                    if (binding == null) return;
                     binding.progressImport.setVisibility(View.GONE);
                     binding.btnImport.setEnabled(true);
-                    Snackbar.make(
-                        binding.getRoot(),
+                    Snackbar.make(binding.getRoot(),
                         "✓ تم الاستيراد: " + result.surahsAdded + " سورة · " + result.ayahsAdded + " آية",
-                        Snackbar.LENGTH_LONG
-                    ).show();
+                        Snackbar.LENGTH_LONG).show();
                     loadStats();
                 });
             } catch (Exception e) {
+                if (!isAdded() || binding == null) return;
                 requireActivity().runOnUiThread(() -> {
+                    if (binding == null) return;
                     binding.progressImport.setVisibility(View.GONE);
                     binding.btnImport.setEnabled(true);
                     Snackbar.make(binding.getRoot(), "✗ فشل الاستيراد: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
@@ -154,6 +159,7 @@ public class ImportExportFragment extends Fragment {
     }
 
     private void confirmClearAll() {
+        if (!isAdded()) return;
         new MaterialAlertDialogBuilder(requireContext())
             .setTitle("مسح جميع البيانات")
             .setMessage("هل أنت متأكد؟ سيتم حذف جميع الآيات والسور المحفوظة نهائياً.")
@@ -167,7 +173,9 @@ public class ImportExportFragment extends Fragment {
             AppDatabase db = AppDatabase.getInstance(requireContext());
             db.ayahDao().deleteAll();
             db.surahDao().deleteAll();
+            if (!isAdded() || binding == null) return;
             requireActivity().runOnUiThread(() -> {
+                if (binding == null) return;
                 loadStats();
                 Snackbar.make(binding.getRoot(), "تم مسح جميع البيانات", Snackbar.LENGTH_SHORT).show();
             });

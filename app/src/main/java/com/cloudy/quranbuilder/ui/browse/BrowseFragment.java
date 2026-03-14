@@ -41,7 +41,6 @@ public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClic
         adapter = new SurahAdapter(this);
         binding.recyclerSurahs.setAdapter(adapter);
 
-        // إعداد البحث
         binding.searchInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
@@ -54,31 +53,38 @@ public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClic
         loadData();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadData(); // تحديث عند العودة
-    }
+    // onResume لا يستدعي loadData لتفادي التحميل المزدوج
+    // سيُحدَّث التطبيق عند العودة من AyahsFragment عبر onViewCreated
 
     private void loadData() {
+        if (!isAdded()) return;
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(requireContext());
             List<Integer> numbersWithData = db.ayahDao().getSurahNumbersWithData();
-            surahsWithData = new HashSet<>(numbersWithData);
+            Set<Integer> withData = new HashSet<>(numbersWithData);
 
-            List<SurahAdapter.SurahRow> rows = buildRows(SurahInfo.ALL_SURAHS, surahsWithData, "");
+            List<SurahAdapter.SurahRow> rows = buildRows(SurahInfo.ALL_SURAHS, withData, "");
 
+            if (!isAdded() || binding == null) return;  // ← guard
             requireActivity().runOnUiThread(() -> {
+                if (binding == null) return;
+                surahsWithData = withData;
                 adapter.submitList(rows);
-                updateStats();
+                updateStats(withData);
             });
         });
     }
 
     private void filterSurahs(String query) {
+        if (!isAdded()) return;
+        final Set<Integer> snapshot = new HashSet<>(surahsWithData);
         Executors.newSingleThreadExecutor().execute(() -> {
-            List<SurahAdapter.SurahRow> rows = buildRows(SurahInfo.ALL_SURAHS, surahsWithData, query.trim());
-            requireActivity().runOnUiThread(() -> adapter.submitList(rows));
+            List<SurahAdapter.SurahRow> rows = buildRows(SurahInfo.ALL_SURAHS, snapshot, query.trim());
+            if (!isAdded() || binding == null) return;
+            requireActivity().runOnUiThread(() -> {
+                if (binding == null) return;
+                adapter.submitList(rows);
+            });
         });
     }
 
@@ -92,13 +98,16 @@ public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClic
         return rows;
     }
 
-    private void updateStats() {
+    private void updateStats(Set<Integer> withData) {
+        if (!isAdded()) return;
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(requireContext());
             int totalAyahs = db.ayahDao().getTotalAyahCount();
-            int totalSurahs = surahsWithData.size();
+            int totalSurahs = withData.size();
 
+            if (!isAdded() || binding == null) return;
             requireActivity().runOnUiThread(() -> {
+                if (binding == null) return;
                 binding.tvStats.setText(totalSurahs + " سورة · " + totalAyahs + " آية محفوظة");
             });
         });

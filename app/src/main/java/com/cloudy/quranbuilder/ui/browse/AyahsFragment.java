@@ -51,9 +51,7 @@ public class AyahsFragment extends Fragment {
             surahName   = getArguments().getString(ARG_SURAH_NAME);
         }
 
-        // زر الرجوع
         binding.btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
-
         binding.tvSurahTitle.setText(surahName);
 
         SurahInfo info = SurahInfo.getByNumber(surahNumber);
@@ -70,6 +68,7 @@ public class AyahsFragment extends Fragment {
     }
 
     private void loadAyahs() {
+        if (!isAdded() || binding == null) return;
         binding.progressBar.setVisibility(View.VISIBLE);
         binding.emptyState.setVisibility(View.GONE);
 
@@ -77,7 +76,9 @@ public class AyahsFragment extends Fragment {
             AppDatabase db = AppDatabase.getInstance(requireContext());
             List<AyahEntity> ayahs = db.ayahDao().getAyahsForSurahSync(surahNumber);
 
+            if (!isAdded() || binding == null) return;
             requireActivity().runOnUiThread(() -> {
+                if (binding == null) return;
                 binding.progressBar.setVisibility(View.GONE);
 
                 if (ayahs.isEmpty()) {

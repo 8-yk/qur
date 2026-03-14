@@ -8,10 +8,7 @@ public class JsonModels {
     public static class JsonRoot {
         @SerializedName("data")
         public DataNode data;
-
-        public JsonRoot() {
-            this.data = new DataNode();
-        }
+        public JsonRoot() { this.data = new DataNode(); }
     }
 
     public static class DataNode {
@@ -20,36 +17,30 @@ public class JsonModels {
     }
 
     public static class SurahJson {
-        @SerializedName("number")
-        public int number;
-
-        @SerializedName("name")
-        public String name;
-
-        @SerializedName("ayahs")
-        public List<AyahJson> ayahs;
+        @SerializedName("number") public int number;
+        @SerializedName("name")   public String name;
+        @SerializedName("ayahs") public List<AyahJson> ayahs;
 
         public SurahJson() {}
-
         public SurahJson(int number, String name, List<AyahJson> ayahs) {
-            this.number = number;
-            this.name = name;
-            this.ayahs = ayahs;
+            this.number = number; this.name = name; this.ayahs = ayahs;
         }
     }
 
     public static class AyahJson {
-        @SerializedName("numberInSurah")
-        public int numberInSurah;
-
-        @SerializedName("text")
-        public String text;
+        @SerializedName("numberInSurah") public int numberInSurah;
+        @SerializedName("text")          public String text;
+        @SerializedName("juz")           public int juz;
+        @SerializedName("hizb")          public int hizb;
+        @SerializedName("hizbQuarter")   public int hizbQuarter;
 
         public AyahJson() {}
-
-        public AyahJson(int numberInSurah, String text) {
+        public AyahJson(int numberInSurah, String text, int juz, int hizb, int hizbQuarter) {
             this.numberInSurah = numberInSurah;
             this.text = text;
+            this.juz = juz;
+            this.hizb = hizb;
+            this.hizbQuarter = hizbQuarter;
         }
     }
 }

@@ -8,7 +8,6 @@
     android:layoutDirection="rtl"
     android:background="@color/bg_primary">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,7 +29,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="الصق نص القرآن وسيتم تحليله تلقائياً"
+            android:text="الصق نص القرآن لتحليله وحفظه"
             android:textColor="@color/text_secondary"
             android:textSize="13sp"
             android:layout_marginTop="2dp" />
@@ -52,10 +51,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
                 app:boxStrokeColor="@color/gold_dim"
                 android:hint="اختر السورة">
 
@@ -68,16 +67,84 @@
                     android:gravity="end" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- الجزء + رقم أول آية -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="5dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="@color/gold_dim"
+                    android:hint="الجزء (1-30)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etJuz"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="5dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="@color/gold_dim"
+                    android:hint="ربع الحزب في الجزء (1-8)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etHizbQuarterInJuz"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <!-- نتيجة حساب الحزب تلقائياً -->
+            <TextView
+                android:id="@+id/tvCalcHizb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text=""
+                android:textColor="@color/gold_primary"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:background="@color/bg_card"
+                android:paddingVertical="8dp"
+                android:paddingHorizontal="12dp"
+                android:visibility="gone" />
+
             <!-- رقم أول آية -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
                 app:boxStrokeColor="@color/gold_dim"
                 android:hint="رقم الآية الأولى (للنمط الاحتياطي)">
 
@@ -97,10 +164,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
                 app:boxStrokeColor="@color/gold_dim"
                 android:hint="الصق نص السورة هنا (مع رمز ۝ أو ﴿﴾)">
 
@@ -118,7 +185,7 @@
                     android:lineSpacingMultiplier="1.5" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- أزرار التحليل والمسح -->
+            <!-- أزرار التحليل -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -149,7 +216,7 @@
                     android:textColor="@color/text_secondary" />
             </LinearLayout>
 
-            <!-- عداد الآيات المحللة -->
+            <!-- عداد -->
             <TextView
                 android:id="@+id/tvPreviewCount"
                 android:layout_width="wrap_content"
@@ -159,7 +226,7 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
-            <!-- معاينة الآيات المحللة -->
+            <!-- معاينة -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardPreview"
                 android:layout_width="match_parent"

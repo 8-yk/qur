@@ -30,9 +30,22 @@ public class AyahEntity {
     @ColumnInfo(name = "text")
     public String text;
 
-    public AyahEntity(int surahNumber, int numberInSurah, String text) {
-        this.surahNumber = surahNumber;
+    @ColumnInfo(name = "juz", defaultValue = "0")
+    public int juz;
+
+    @ColumnInfo(name = "hizb", defaultValue = "0")
+    public int hizb;
+
+    @ColumnInfo(name = "hizb_quarter", defaultValue = "0")
+    public int hizbQuarter;
+
+    public AyahEntity(int surahNumber, int numberInSurah, String text,
+                      int juz, int hizb, int hizbQuarter) {
+        this.surahNumber  = surahNumber;
         this.numberInSurah = numberInSurah;
-        this.text = text;
+        this.text          = text;
+        this.juz           = juz;
+        this.hizb          = hizb;
+        this.hizbQuarter   = hizbQuarter;
     }
 }

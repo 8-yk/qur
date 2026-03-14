@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary">
+
+    <!-- صفحات المصحف -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="90dp"
+        android:clipToPadding="false" />
+
+    <!-- شريط علوي ثابت -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/bg_surface"
+        android:paddingTop="52dp"
+        android:paddingBottom="0dp"
+        android:elevation="6dp">
+
+        <TextView
+            android:id="@+id/tvMushafSurahIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/gold_primary"
+            android:textSize="16sp"
+            android:fontFamily="serif"
+            android:textStyle="bold"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="10dp" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/mushafTopProgress"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            app:trackCornerRadius="0dp"
+            app:indicatorColor="@color/gold_primary"
+            app:trackColor="@color/gold_track"
+            android:progress="0" />
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,9 +1,7 @@
 package com.cloudy.quranbuilder;
 
 import android.os.Bundle;
-import android.view.MenuItem;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -12,15 +10,15 @@ import com.cloudy.quranbuilder.databinding.ActivityMainBinding;
 import com.cloudy.quranbuilder.ui.add.AddFragment;
 import com.cloudy.quranbuilder.ui.browse.BrowseFragment;
 import com.cloudy.quranbuilder.ui.importexport.ImportExportFragment;
-import com.google.android.material.navigation.NavigationBarView;
+import com.cloudy.quranbuilder.ui.mushaf.MushafFragment;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
-    // الـ fragments الرئيسية — نحتفظ بها لتجنب إعادة الإنشاء
-    private BrowseFragment browseFragment;
-    private AddFragment addFragment;
+    private BrowseFragment       browseFragment;
+    private MushafFragment       mushafFragment;
+    private AddFragment          addFragment;
     private ImportExportFragment importExportFragment;
 
     private Fragment activeFragment;
@@ -31,34 +29,39 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        initFragments();
+        initFragments(savedInstanceState);
         setupBottomNav();
     }
 
-    private void initFragments() {
-        browseFragment = new BrowseFragment();
-        addFragment = new AddFragment();
-        importExportFragment = new ImportExportFragment();
+    private void initFragments(Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            browseFragment       = new BrowseFragment();
+            mushafFragment       = new MushafFragment();
+            addFragment          = new AddFragment();
+            importExportFragment = new ImportExportFragment();
 
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragmentContainer, importExportFragment, "import_export").hide(importExportFragment)
-                .add(R.id.fragmentContainer, addFragment, "add").hide(addFragment)
-                .add(R.id.fragmentContainer, browseFragment, "browse")
-                .commit();
-
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragmentContainer, importExportFragment, "data").hide(importExportFragment)
+                    .add(R.id.fragmentContainer, addFragment,          "add").hide(addFragment)
+                    .add(R.id.fragmentContainer, mushafFragment,       "mushaf").hide(mushafFragment)
+                    .add(R.id.fragmentContainer, browseFragment,       "browse")
+                    .commit();
+        } else {
+            browseFragment       = (BrowseFragment)       getSupportFragmentManager().findFragmentByTag("browse");
+            mushafFragment       = (MushafFragment)       getSupportFragmentManager().findFragmentByTag("mushaf");
+            addFragment          = (AddFragment)          getSupportFragmentManager().findFragmentByTag("add");
+            importExportFragment = (ImportExportFragment) getSupportFragmentManager().findFragmentByTag("data");
+        }
         activeFragment = browseFragment;
     }
 
     private void setupBottomNav() {
         binding.bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_browse) {
-                showFragment(browseFragment);
-            } else if (id == R.id.nav_add) {
-                showFragment(addFragment);
-            } else if (id == R.id.nav_data) {
-                showFragment(importExportFragment);
-            }
+            if      (id == R.id.nav_browse) showFragment(browseFragment);
+            else if (id == R.id.nav_mushaf) showFragment(mushafFragment);
+            else if (id == R.id.nav_add)    showFragment(addFragment);
+            else if (id == R.id.nav_data)   showFragment(importExportFragment);
             return true;
         });
     }
@@ -73,19 +76,16 @@ public class MainActivity extends AppCompatActivity {
         activeFragment = target;
     }
 
-    /** يُستدعى من BrowseFragment لفتح شاشة الآيات */
     public void openAyahsScreen(int surahNumber, String surahName) {
-        Fragment ayahsFragment = com.cloudy.quranbuilder.ui.browse.AyahsFragment
+        Fragment f = com.cloudy.quranbuilder.ui.browse.AyahsFragment
                 .newInstance(surahNumber, surahName);
 
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(
-                    android.R.anim.slide_in_left,
-                    android.R.anim.fade_out,
-                    android.R.anim.fade_in,
-                    android.R.anim.slide_out_right
+                    android.R.anim.slide_in_left, android.R.anim.fade_out,
+                    android.R.anim.fade_in,       android.R.anim.slide_out_right
                 )
-                .replace(R.id.fragmentContainer, ayahsFragment)
+                .replace(R.id.fragmentContainer, f)
                 .addToBackStack(null)
                 .commit();
 
