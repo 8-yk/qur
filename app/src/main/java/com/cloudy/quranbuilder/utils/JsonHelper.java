@@ -16,9 +16,10 @@ public class JsonHelper {
 
     public static void exportToUri(Context ctx, Uri uri) throws IOException {
         AppDatabase db = AppDatabase.getInstance(ctx);
-        List<SurahEntity> surahs = db.surahDao().getAllSurahsSync();
-        List<AyahEntity> allAyahs = db.ayahDao().getAllAyahsSync();
+        List<SurahEntity> surahs  = db.surahDao().getAllSurahsSync();
+        List<AyahEntity>  allAyahs = db.ayahDao().getAllAyahsSync();
 
+        // تجميع الآيات حسب السورة
         Map<Integer, List<AyahEntity>> map = new HashMap<>();
         for (AyahEntity a : allAyahs)
             map.computeIfAbsent(a.surahNumber, k -> new ArrayList<>()).add(a);
@@ -26,12 +27,19 @@ public class JsonHelper {
         List<JsonModels.SurahJson> list = new ArrayList<>();
         for (SurahEntity s : surahs) {
             List<AyahEntity> ae = map.getOrDefault(s.number, new ArrayList<>());
+
+            // عدد الآيات الفعلي المضاف (وليس القيمة المخزنة في surah)
+            int actualAyahCount = ae.size();
+
             List<JsonModels.AyahJson> aj = new ArrayList<>();
             for (AyahEntity a : ae)
                 aj.add(new JsonModels.AyahJson(a.numberInSurah, a.text,
                         a.juz, a.hizb, a.hizbQuarter, a.page));
-            list.add(new JsonModels.SurahJson(s.number, s.name, s.isMeccan, s.ayahsInSurah, aj));
+
+            list.add(new JsonModels.SurahJson(
+                    s.number, s.name, s.isMeccan, actualAyahCount, aj));
         }
+
         JsonModels.JsonRoot root = new JsonModels.JsonRoot();
         root.data.surahs = list;
 
@@ -54,7 +62,8 @@ public class JsonHelper {
         AppDatabase db = AppDatabase.getInstance(ctx);
         int sc = 0, ac = 0;
         for (JsonModels.SurahJson sj : root.data.surahs) {
-            db.surahDao().insertSurah(new SurahEntity(sj.number, sj.name, sj.isMeccan, sj.ayahsInSurah));
+            // عند الاستيراد ayahsInSurah = 0 دائماً (يُحسب من الآيات)
+            db.surahDao().insertSurah(new SurahEntity(sj.number, sj.name, sj.isMeccan, 0));
             sc++;
             if (sj.ayahs != null) for (JsonModels.AyahJson aj : sj.ayahs) {
                 db.ayahDao().insertAyah(new AyahEntity(sj.number, aj.numberInSurah, aj.text,
