@@ -12,6 +12,8 @@ import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -30,6 +32,26 @@ import java.util.concurrent.Executors;
 
 public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.PageHolder> {
 
+    // ── أسماء الأجزاء كاملة ──────────────────────────────────
+    private static final String[] JUZ_NAMES = {
+            "الجزء الأوَّل",        "الجزء الثاني",          "الجزء الثالث",
+            "الجزء الرابع",         "الجزء الخامس",          "الجزء السادس",
+            "الجزء السابع",         "الجزء الثامن",          "الجزء التاسع",
+            "الجزء العاشر",         "الجزء الحادي عشر",      "الجزء الثاني عشر",
+            "الجزء الثالث عشر",     "الجزء الرابع عشر",      "الجزء الخامس عشر",
+            "الجزء السادس عشر",     "الجزء السابع عشر",      "الجزء الثامن عشر",
+            "الجزء التاسع عشر",     "الجزء العشرون",         "الجزء الحادي والعشرون",
+            "الجزء الثاني والعشرون","الجزء الثالث والعشرون", "الجزء الرابع والعشرون",
+            "الجزء الخامس والعشرون","الجزء السادس والعشرون", "الجزء السابع والعشرون",
+            "الجزء الثامن والعشرون","الجزء التاسع والعشرون", "الجزء الثلاثون"
+    };
+
+    private static String juzName(int juz) {
+        if (juz >= 1 && juz <= 30) return JUZ_NAMES[juz - 1];
+        return juz > 0 ? "الجزء " + juz : "";
+    }
+
+    // ─────────────────────────────────────────────────────────
     private final Context context;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private List<SurahInfo> surahList;
@@ -45,27 +67,22 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
     private void loadQuranFont() {
         try {
             quranTypeface = Typeface.createFromAsset(context.getAssets(), "fonts/quran.ttf");
-        } catch (Exception ignored) {
-            quranTypeface = null;
-        }
+        } catch (Exception ignored) { quranTypeface = null; }
     }
 
-    /** تحديث القائمة من الخارج */
     public void updateList(List<SurahInfo> newList) {
         this.surahList = new ArrayList<>(newList);
         notifyDataSetChanged();
     }
 
-    /** إرجاع موضع السورة في القائمة، أو -1 إن لم توجد */
     public int getPositionForSurah(int surahNumber) {
-        for (int i = 0; i < surahList.size(); i++) {
+        for (int i = 0; i < surahList.size(); i++)
             if (surahList.get(i).number == surahNumber) return i;
-        }
         return -1;
     }
 
-    @Override public long getItemId(int position) { return surahList.get(position).number; }
-    @Override public int  getItemCount()           { return surahList.size(); }
+    @Override public long getItemId(int pos) { return surahList.get(pos).number; }
+    @Override public int  getItemCount()      { return surahList.size(); }
 
     @NonNull
     @Override
@@ -76,35 +93,38 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PageHolder holder, int position) {
-        holder.bind(surahList.get(position));
+    public void onBindViewHolder(@NonNull PageHolder h, int pos) {
+        h.bind(surahList.get(pos));
     }
 
     // ─────────────────────────────────────────────────────────
     class PageHolder extends RecyclerView.ViewHolder {
-        final TextView   tvSurahCorner;
-        final TextView   tvJuzDisplay;
-        final TextView   tvMushafSurahHeader;
-        final TextView   tvBismillah;
-        final View       bismillahDivider;
-        final ScrollView svMushafContent;
-        final TextView   tvMushafContent;
-        final TextView   tvMushafEmpty;
-        final TextView   tvPageNumBottom;
-        final ProgressBar progressBar;
+
+        final TextView      tvPageSurahName;
+        final TextView      tvPageJuzName;
+        final FrameLayout   surahHeaderContainer;
+        final TextView      tvMushafSurahHeader;
+        final TextView      tvBismillah;
+        final View          bismillahDivider;
+        final ScrollView    svMushafContent;
+        final TextView      tvMushafContent;
+        final LinearLayout  emptyContainer;
+        final TextView      tvPageNumBottom;
+        final ProgressBar   progressBar;
 
         PageHolder(@NonNull View v) {
             super(v);
-            tvSurahCorner      = v.findViewById(R.id.tvSurahCorner);
-            tvJuzDisplay       = v.findViewById(R.id.tvJuzDisplay);
-            tvMushafSurahHeader = v.findViewById(R.id.tvMushafSurahHeader);
-            tvBismillah        = v.findViewById(R.id.tvBismillah);
-            bismillahDivider   = v.findViewById(R.id.bismillahDivider);
-            svMushafContent    = v.findViewById(R.id.svMushafContent);
-            tvMushafContent    = v.findViewById(R.id.tvMushafContent);
-            tvMushafEmpty      = v.findViewById(R.id.tvMushafEmpty);
-            tvPageNumBottom    = v.findViewById(R.id.tvPageNumBottom);
-            progressBar        = v.findViewById(R.id.mushafProgress);
+            tvPageSurahName      = v.findViewById(R.id.tvPageSurahName);
+            tvPageJuzName        = v.findViewById(R.id.tvPageJuzName);
+            surahHeaderContainer = v.findViewById(R.id.surahHeaderContainer);
+            tvMushafSurahHeader  = v.findViewById(R.id.tvMushafSurahHeader);
+            tvBismillah          = v.findViewById(R.id.tvBismillah);
+            bismillahDivider     = v.findViewById(R.id.bismillahDivider);
+            svMushafContent      = v.findViewById(R.id.svMushafContent);
+            tvMushafContent      = v.findViewById(R.id.tvMushafContent);
+            emptyContainer       = v.findViewById(R.id.emptyContainer);
+            tvPageNumBottom      = v.findViewById(R.id.tvPageNumBottom);
+            progressBar          = v.findViewById(R.id.mushafProgress);
 
             if (quranTypeface != null) {
                 tvBismillah.setTypeface(quranTypeface);
@@ -116,81 +136,85 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
         void bind(SurahInfo info) {
             itemView.setTag(info.number);
 
-            // ما هو متاح فوراً
-            tvMushafSurahHeader.setText("سورة " + info.name);
-            tvSurahCorner.setText(info.name);
-            tvPageNumBottom.setText(toArabicNum(info.number));
+            // ما يعرف فوراً
+            tvPageSurahName.setText(info.name);
+            tvMushafSurahHeader.setText("سُورَةُ " + info.name);
 
-            // إعادة ضبط الحقول المؤجلة
-            tvJuzDisplay.setVisibility(View.INVISIBLE);
+            // reset
+            tvPageJuzName.setText("");
+            tvPageNumBottom.setText(toAr(info.number)); // fallback
 
-            // إخفاء المحتوى + إظهار loading
+            // إخفاء المحتوى
             svMushafContent.setVisibility(View.GONE);
-            tvMushafEmpty.setVisibility(View.GONE);
+            emptyContainer.setVisibility(View.GONE);
             tvBismillah.setVisibility(View.GONE);
             bismillahDivider.setVisibility(View.GONE);
             progressBar.setVisibility(View.VISIBLE);
 
-            final int expectedSurah = info.number;
+            final int expected = info.number;
 
             Executors.newSingleThreadExecutor().execute(() -> {
                 List<AyahEntity> ayahs = AppDatabase.getInstance(context)
                         .ayahDao().getAyahsForSurahSync(info.number);
 
                 mainHandler.post(() -> {
-                    if (!Integer.valueOf(expectedSurah).equals(itemView.getTag())) return;
+                    if (!Integer.valueOf(expected).equals(itemView.getTag())) return;
                     progressBar.setVisibility(View.GONE);
 
-                    // رقم الجزء من أول آية
-                    if (!ayahs.isEmpty() && ayahs.get(0).juz > 0) {
-                        tvJuzDisplay.setText("الجزء " + toArabicNum(ayahs.get(0).juz));
-                        tvJuzDisplay.setVisibility(View.VISIBLE);
-                    }
-
-                    // رقم الصفحة الفعلي (إن وُجد)
-                    if (!ayahs.isEmpty() && ayahs.get(0).page > 0) {
-                        tvPageNumBottom.setText(toArabicNum(ayahs.get(0).page));
+                    // جزء وصفحة من البيانات الفعلية
+                    if (!ayahs.isEmpty()) {
+                        AyahEntity first = ayahs.get(0);
+                        if (first.juz > 0)
+                            tvPageJuzName.setText(juzName(first.juz));
+                        if (first.page > 0)
+                            tvPageNumBottom.setText(toAr(first.page));
                     }
 
                     if (ayahs.isEmpty()) {
-                        tvMushafEmpty.setVisibility(View.VISIBLE);
+                        emptyContainer.setVisibility(View.VISIBLE);
                     } else {
-                        // البسملة: لكل سورة إلا التوبة (9) والفاتحة (1 بسملتها آية)
+                        // البسملة: لكل سورة إلا التوبة (9) والفاتحة (1)
                         if (info.number != 9 && info.number != 1) {
+                            tvBismillah.setText(buildBismillah());
                             tvBismillah.setVisibility(View.VISIBLE);
                             bismillahDivider.setVisibility(View.VISIBLE);
                         }
                         tvMushafContent.setText(buildMushafText(ayahs));
                         svMushafContent.setVisibility(View.VISIBLE);
-                        // ابدأ من الأعلى دائماً
                         svMushafContent.scrollTo(0, 0);
                     }
                 });
             });
         }
 
+        /** البسملة بالطريقة المصحفية مع شرطات تمديد */
+        private String buildBismillah() {
+            return "بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ";
+        }
+
         /**
-         * نص مصحفي متصل — الآيات تتدفق بدون سطر جديد بينها
-         * رقم الآية ﴿١﴾ بلون ذهبي وحجم أصغر
+         * نص مصحفي متصل — رقم الآية ﴿١﴾ ذهبي وصغير مدمج في التدفق
          */
         private CharSequence buildMushafText(List<AyahEntity> ayahs) {
             SpannableStringBuilder sb = new SpannableStringBuilder();
             for (AyahEntity ayah : ayahs) {
                 sb.append(ayah.text);
-                sb.append(" ");
+                sb.append("\u00A0"); // مسافة غير قاطعة
 
-                String numStr = "﴿" + toArabicNum(ayah.numberInSurah) + "﴾ ";
+                // رقم الآية
+                String num = " ﴿" + toAr(ayah.numberInSurah) + "﴾ ";
                 int start = sb.length();
-                sb.append(numStr);
+                sb.append(num);
                 sb.setSpan(new ForegroundColorSpan(Color.parseColor("#C9A84C")),
                         start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                sb.setSpan(new RelativeSizeSpan(0.62f),
+                sb.setSpan(new RelativeSizeSpan(0.6f),
                         start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             return sb;
         }
 
-        private String toArabicNum(int n) {
+        // ── تحويل الأرقام للعربية ──
+        private String toAr(int n) {
             final String[] d = {"٠","١","٢","٣","٤","٥","٦","٧","٨","٩"};
             StringBuilder sb = new StringBuilder();
             for (char c : String.valueOf(n).toCharArray()) sb.append(d[c - '0']);
