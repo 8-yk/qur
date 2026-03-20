@@ -11,13 +11,12 @@
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="92dp"
-        android:paddingBottom="70dp"
+        android:paddingTop="84dp"
+        android:paddingBottom="64dp"
         android:clipToPadding="false" />
 
-    <!-- شريط علوي -->
+    <!-- شريط علوي مبسّط -->
     <LinearLayout
-        android:id="@+id/mushafTopBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -30,50 +29,37 @@
             android:orientation="horizontal"
             android:layoutDirection="rtl"
             android:gravity="center_vertical"
-            android:paddingTop="52dp"
-            android:paddingBottom="8dp"
-            android:paddingHorizontal="16dp">
+            android:paddingTop="50dp"
+            android:paddingBottom="10dp"
+            android:paddingHorizontal="18dp">
 
-            <!-- اسم السورة -->
-            <LinearLayout
+            <!-- عنوان -->
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvMushafSurahName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/gold_primary"
-                    android:textSize="17sp"
-                    android:fontFamily="serif"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvMushafSurahMeta"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp"
-                    android:layout_marginTop="1dp" />
-            </LinearLayout>
+                android:text="المصحف"
+                android:textColor="@color/gold_primary"
+                android:textSize="18sp"
+                android:fontFamily="serif"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
 
             <!-- زر الانتقال -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnMushafJump"
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
+                android:layout_height="34dp"
                 android:text="انتقل ›"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 app:strokeColor="@color/gold_dim"
                 android:textColor="@color/gold_primary"
-                app:cornerRadius="18dp"
+                app:cornerRadius="17dp"
                 android:paddingHorizontal="14dp" />
         </LinearLayout>
 
-        <!-- شريط تقدم رفيع -->
+        <!-- شريط تقدم -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/mushafTopProgress"
             android:layout_width="match_parent"
@@ -85,20 +71,19 @@
 
     </LinearLayout>
 
-    <!-- شريط سفلي: السابق / رقم السورة / التالي -->
+    <!-- شريط سفلي للتنقل -->
     <LinearLayout
         android:id="@+id/mushafBottomBar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="56dp"
         android:layout_gravity="bottom"
         android:orientation="horizontal"
         android:layoutDirection="rtl"
         android:gravity="center_vertical"
         android:background="@color/bg_surface"
         android:elevation="6dp"
-        android:paddingHorizontal="8dp">
+        android:paddingHorizontal="4dp">
 
-        <!-- السابق -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMushafPrev"
             android:layout_width="wrap_content"
@@ -108,7 +93,6 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="@color/gold_primary" />
 
-        <!-- رقم / من -->
         <TextView
             android:id="@+id/tvMushafPageNum"
             android:layout_width="0dp"
@@ -118,7 +102,6 @@
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 
-        <!-- التالي -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMushafNext"
             android:layout_width="wrap_content"
@@ -128,6 +111,33 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="@color/gold_primary" />
 
+    </LinearLayout>
+
+    <!-- حالة فارغة (لا توجد بيانات أبداً) -->
+    <LinearLayout
+        android:id="@+id/tvMushafEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="﴿ المصحف فارغ ﴾"
+            android:textColor="@color/gold_dim"
+            android:textSize="20sp"
+            android:fontFamily="serif" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="أضف سوراً وآيات أولاً من تبويب الإضافة"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:gravity="center" />
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
