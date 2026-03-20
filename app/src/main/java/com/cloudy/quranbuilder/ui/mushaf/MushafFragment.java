@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 public class MushafFragment extends Fragment {
 
     private FragmentMushafBinding binding;
-    private MushafPagerAdapter pagerAdapter;
+    private MushafPagerAdapter    pagerAdapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
@@ -41,13 +41,8 @@ public class MushafFragment extends Fragment {
         binding.viewPager.setPageTransformer(new PageFlipTransformer());
 
         binding.viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                updateBars(position);
-            }
+            @Override public void onPageSelected(int position) { updateNav(position); }
         });
-
-        binding.btnMushafJump.setOnClickListener(v -> openJumpSheet());
 
         binding.btnMushafNext.setOnClickListener(v -> {
             int cur = binding.viewPager.getCurrentItem();
@@ -58,6 +53,7 @@ public class MushafFragment extends Fragment {
             int cur = binding.viewPager.getCurrentItem();
             if (cur > 0) binding.viewPager.setCurrentItem(cur - 1, true);
         });
+        binding.btnMushafJump.setOnClickListener(v -> openJumpSheet());
 
         loadSurahsFromDb();
     }
@@ -65,18 +61,14 @@ public class MushafFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // نعيد التحميل عند العودة للتبويب (لو أضاف المستخدم بيانات جديدة)
         loadSurahsFromDb();
     }
 
-    /**
-     * يجلب فقط السور التي تحتوي آيات من قاعدة البيانات.
-     */
+    /** يجلب فقط السور التي فيها آيات محفوظة */
     private void loadSurahsFromDb() {
         if (!isAdded() || binding == null) return;
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            // السور التي فيها آيات فعلية
             List<Integer> nums = AppDatabase.getInstance(requireContext())
                     .ayahDao().getSurahNumbersWithData();
 
@@ -91,23 +83,29 @@ public class MushafFragment extends Fragment {
             if (!isAdded() || binding == null) return;
             requireActivity().runOnUiThread(() -> {
                 if (binding == null) return;
-
                 if (infos.isEmpty()) {
                     binding.tvMushafEmpty.setVisibility(View.VISIBLE);
                     binding.viewPager.setVisibility(View.GONE);
+                    binding.mushafTopProgress.setVisibility(View.GONE);
                     binding.mushafBottomBar.setVisibility(View.GONE);
                 } else {
                     binding.tvMushafEmpty.setVisibility(View.GONE);
                     binding.viewPager.setVisibility(View.VISIBLE);
+                    binding.mushafTopProgress.setVisibility(View.VISIBLE);
                     binding.mushafBottomBar.setVisibility(View.VISIBLE);
+
+                    int prevPos = binding.viewPager.getCurrentItem();
                     pagerAdapter.updateList(infos);
-                    updateBars(binding.viewPager.getCurrentItem());
+                    // نحاول نحافظ على الموضع إن كان ما زال صالحاً
+                    int clampedPos = Math.min(prevPos, infos.size() - 1);
+                    binding.viewPager.setCurrentItem(Math.max(0, clampedPos), false);
+                    updateNav(binding.viewPager.getCurrentItem());
                 }
             });
         });
     }
 
-    private void updateBars(int position) {
+    private void updateNav(int position) {
         if (binding == null) return;
         int total = pagerAdapter.getItemCount();
         if (total == 0) return;
@@ -115,8 +113,8 @@ public class MushafFragment extends Fragment {
         int progress = Math.max(1, (int) ((position + 1) / (float) total * 100));
         binding.mushafTopProgress.setProgress(progress);
         binding.tvMushafPageNum.setText((position + 1) + " / " + total);
-        binding.btnMushafPrev.setAlpha(position == 0        ? 0.3f : 1f);
-        binding.btnMushafNext.setAlpha(position == total - 1 ? 0.3f : 1f);
+        binding.btnMushafPrev.setAlpha(position == 0         ? 0.25f : 1f);
+        binding.btnMushafNext.setAlpha(position == total - 1  ? 0.25f : 1f);
     }
 
     private void openJumpSheet() {
@@ -130,20 +128,17 @@ public class MushafFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
+    public void onDestroyView() { super.onDestroyView(); binding = null; }
 
     // ── تأثير تقليب الصفحات ──────────────────────────────────
     static class PageFlipTransformer implements ViewPager2.PageTransformer {
         @Override
         public void transformPage(@NonNull View page, float position) {
-            float absPos = Math.abs(position);
-            page.setAlpha(1f - absPos * 0.3f);
-            page.setScaleX(1f - absPos * 0.03f);
-            page.setScaleY(1f - absPos * 0.03f);
-            page.setRotationY(position * -6f);
+            float abs = Math.abs(position);
+            page.setAlpha(1f - abs * 0.25f);
+            page.setScaleX(1f - abs * 0.02f);
+            page.setScaleY(1f - abs * 0.02f);
+            page.setRotationY(position * -5f);
         }
     }
 }
