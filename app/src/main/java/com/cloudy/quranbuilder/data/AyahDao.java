@@ -27,6 +27,28 @@ public interface AyahDao {
     @Query("SELECT DISTINCT surah_number FROM ayahs")
     List<Integer> getSurahNumbersWithData();
 
+    // ── استعلامات المصحف بالصفحة ────────────────────────────
+
+    /**
+     * هل هناك آيات فيها رقم صفحة مُعبَّأ؟
+     */
+    @Query("SELECT COUNT(*) FROM ayahs WHERE page > 0")
+    int getAyahsWithPageCount();
+
+    /**
+     * أرقام الصفحات المتميزة التي فيها آيات، مرتبة تصاعدياً.
+     */
+    @Query("SELECT DISTINCT page FROM ayahs WHERE page > 0 ORDER BY page ASC")
+    List<Integer> getDistinctPages();
+
+    /**
+     * كل الآيات في صفحة معينة، مرتبة حسب رقم السورة ثم الآية.
+     */
+    @Query("SELECT * FROM ayahs WHERE page = :pageNum ORDER BY surah_number ASC, number_in_surah ASC")
+    List<AyahEntity> getAyahsForPage(int pageNum);
+
+    // ────────────────────────────────────────────────────────
+
     @Query("SELECT surah_number, COUNT(*) as cnt, COALESCE(MIN(juz),0) as minJuz " +
            "FROM ayahs GROUP BY surah_number")
     List<SurahStat> getSurahStats();
