@@ -18,12 +18,24 @@ import com.cloudy.quranbuilder.ui.add.SurahPickerBottomSheet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MushafFragment extends Fragment {
 
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+
     private FragmentMushafBinding binding;
     private MushafPagerAdapter    pagerAdapter;
+
+    /**
+     * نتحكم بمتى نُعيد التحميل:
+     * - false  → البيانات قديمة، نُعيد التحميل عند الظهور
+     * - true   → البيانات محمّلة ولا داعي لإعادة التحميل
+     */
+    private boolean dataFresh = false;
+
+    // ── Lifecycle ────────────────────────────────────────────
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
@@ -35,7 +47,7 @@ public class MushafFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle saved) {
         super.onViewCreated(view, saved);
 
-        pagerAdapter = new MushafPagerAdapter(requireContext(), new ArrayList<>());
+        pagerAdapter = new MushafPagerAdapter(requireContext());
         binding.viewPager.setAdapter(pagerAdapter);
         binding.viewPager.setOffscreenPageLimit(1);
         binding.viewPager.setPageTransformer(new PageFlipTransformer());
@@ -55,54 +67,113 @@ public class MushafFragment extends Fragment {
         });
         binding.btnMushafJump.setOnClickListener(v -> openJumpSheet());
 
-        loadSurahsFromDb();
+        // تحميل أولي
+        loadData();
     }
 
+    /**
+     * يُستدعى عند تبديل التبويب (hide/show fragments).
+     * هنا نُقرر إعادة التحميل إذا كانت البيانات قديمة.
+     */
     @Override
-    public void onResume() {
-        super.onResume();
-        loadSurahsFromDb();
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && !dataFresh) {
+            // المستخدم انتقل لهذا التبويب وهناك بيانات جديدة
+            loadData();
+        }
     }
 
-    /** يجلب فقط السور التي فيها آيات محفوظة */
-    private void loadSurahsFromDb() {
+    /**
+     * عند الخروج من التبويب نُعلّم البيانات كـ "قديمة"
+     * حتى يُعاد تحميلها عند الرجوع.
+     */
+    public void markDataStale() {
+        dataFresh = false;
+    }
+
+    // ── تحميل البيانات ──────────────────────────────────────
+
+    private void loadData() {
         if (!isAdded() || binding == null) return;
 
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<Integer> nums = AppDatabase.getInstance(requireContext())
-                    .ayahDao().getSurahNumbersWithData();
+        EXECUTOR.execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(requireContext());
 
-            Collections.sort(nums);
+            // نحاول وضع الصفحة أولاً
+            int ayahsWithPage = db.ayahDao().getAyahsWithPageCount();
 
-            List<SurahInfo> infos = new ArrayList<>();
-            for (int n : nums) {
-                SurahInfo info = SurahInfo.getByNumber(n);
-                if (info != null) infos.add(info);
-            }
+            if (ayahsWithPage > 0) {
+                // ── وضع الصفحات الحقيقية ──
+                List<Integer> pageList = db.ayahDao().getDistinctPages();
 
-            if (!isAdded() || binding == null) return;
-            requireActivity().runOnUiThread(() -> {
-                if (binding == null) return;
-                if (infos.isEmpty()) {
-                    binding.tvMushafEmpty.setVisibility(View.VISIBLE);
-                    binding.viewPager.setVisibility(View.GONE);
-                    binding.mushafTopProgress.setVisibility(View.GONE);
-                    binding.mushafBottomBar.setVisibility(View.GONE);
-                } else {
-                    binding.tvMushafEmpty.setVisibility(View.GONE);
-                    binding.viewPager.setVisibility(View.VISIBLE);
-                    binding.mushafTopProgress.setVisibility(View.VISIBLE);
-                    binding.mushafBottomBar.setVisibility(View.VISIBLE);
+                if (!isAdded() || binding == null) return;
+                requireActivity().runOnUiThread(() -> {
+                    if (binding == null) return;
+                    dataFresh = true;
+
+                    if (pageList.isEmpty()) {
+                        showEmpty();
+                        return;
+                    }
 
                     int prevPos = binding.viewPager.getCurrentItem();
-                    pagerAdapter.updateList(infos);
-                    // نحاول نحافظ على الموضع إن كان ما زال صالحاً
-                    int clampedPos = Math.min(prevPos, infos.size() - 1);
-                    binding.viewPager.setCurrentItem(Math.max(0, clampedPos), false);
+                    pagerAdapter.setPageMode(pageList);
+
+                    // نُعيد تعيين الموضع مع تجنب الخروج عن الحدود
+                    int clamp = Math.min(prevPos, pageList.size() - 1);
+                    binding.viewPager.setCurrentItem(Math.max(0, clamp), false);
+                    showContent();
                     updateNav(binding.viewPager.getCurrentItem());
+                });
+
+            } else {
+                // ── Fallback: وضع السورة بسورة ──
+                List<Integer> surahNums = db.ayahDao().getSurahNumbersWithData();
+                Collections.sort(surahNums);
+
+                List<SurahInfo> infoList = new ArrayList<>();
+                for (int n : surahNums) {
+                    SurahInfo info = SurahInfo.getByNumber(n);
+                    if (info != null) infoList.add(info);
                 }
-            });
+
+                if (!isAdded() || binding == null) return;
+                requireActivity().runOnUiThread(() -> {
+                    if (binding == null) return;
+                    dataFresh = true;
+
+                    if (infoList.isEmpty()) {
+                        showEmpty();
+                        return;
+                    }
+
+                    int prevPos = binding.viewPager.getCurrentItem();
+                    pagerAdapter.setSurahMode(infoList);
+
+                    int clamp = Math.min(prevPos, infoList.size() - 1);
+                    binding.viewPager.setCurrentItem(Math.max(0, clamp), false);
+                    showContent();
+                    updateNav(binding.viewPager.getCurrentItem());
+                });
+            }
         });
+    }
+
+    // ── واجهة ────────────────────────────────────────────────
+
+    private void showEmpty() {
+        binding.tvMushafEmpty.setVisibility(View.VISIBLE);
+        binding.viewPager.setVisibility(View.GONE);
+        binding.mushafTopProgress.setVisibility(View.GONE);
+        binding.mushafBottomBar.setVisibility(View.GONE);
+    }
+
+    private void showContent() {
+        binding.tvMushafEmpty.setVisibility(View.GONE);
+        binding.viewPager.setVisibility(View.VISIBLE);
+        binding.mushafTopProgress.setVisibility(View.VISIBLE);
+        binding.mushafBottomBar.setVisibility(View.VISIBLE);
     }
 
     private void updateNav(int position) {
@@ -114,21 +185,25 @@ public class MushafFragment extends Fragment {
         binding.mushafTopProgress.setProgress(progress);
         binding.tvMushafPageNum.setText((position + 1) + " / " + total);
         binding.btnMushafPrev.setAlpha(position == 0         ? 0.25f : 1f);
-        binding.btnMushafNext.setAlpha(position == total - 1  ? 0.25f : 1f);
+        binding.btnMushafNext.setAlpha(position == total - 1 ? 0.25f : 1f);
     }
 
     private void openJumpSheet() {
         SurahPickerBottomSheet sheet = new SurahPickerBottomSheet();
         sheet.setOnSurahSelectedListener(info -> {
+            if (binding == null) return;
             int pos = pagerAdapter.getPositionForSurah(info.number);
-            if (pos >= 0 && binding != null)
-                binding.viewPager.setCurrentItem(pos, true);
+            if (pos >= 0) binding.viewPager.setCurrentItem(pos, true);
+            // في وضع الصفحات لا نقفز بدقة، يمكن تحسينه لاحقاً
         });
         sheet.show(getParentFragmentManager(), "mushaf_jump");
     }
 
     @Override
-    public void onDestroyView() { super.onDestroyView(); binding = null; }
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 
     // ── تأثير تقليب الصفحات ──────────────────────────────────
     static class PageFlipTransformer implements ViewPager2.PageTransformer {
