@@ -38,13 +38,6 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
 
     static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(2);
 
-    /**
-     * علامة نهاية الآية في يونيكود (U+06DD).
-     * خط القرآن يرسمها دائرة ذهبية تحتوي الرقم تلقائياً —
-     * لا حاجة لأي Span مخصص.
-     */
-    private static final char END_OF_AYAH = '\u06DD';
-
     // ── أسماء الأجزاء ────────────────────────────────────────
     static final String[] JUZ_NAMES = {
             "الجزء الأوَّل",           "الجزء الثاني",
@@ -67,6 +60,11 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
     static String juzName(int juz) {
         return (juz >= 1 && juz <= 30) ? JUZ_NAMES[juz - 1]
                 : (juz > 0 ? "الجزء " + juz : "");
+    }
+
+    /** هل هذه السورة تحتاج بسملة؟ الفاتحة بسملتها آية، التوبة لا بسملة */
+    private static boolean needsBismillah(int surahNumber) {
+        return surahNumber != 1 && surahNumber != 9;
     }
 
     // ── PageMeta ─────────────────────────────────────────────
@@ -113,7 +111,6 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
         catch (Exception ignored) { quranTypeface = null; }
     }
 
-    // ── تحديث البيانات ──────────────────────────────────────
     public void setPageMode(List<Integer> pageList, Map<Integer, PageMeta> meta) {
         mode = Mode.PAGE_BASED;
         pages = new ArrayList<>(pageList);
@@ -132,10 +129,8 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
     public PageMeta getMetaAt(int position) {
         if (mode == Mode.PAGE_BASED && position >= 0 && position < pages.size())
             return metaCache.get(pages.get(position));
-        if (mode == Mode.SURAH_BASED && position >= 0 && position < surahs.size()) {
-            SurahInfo info = surahs.get(position);
-            return new PageMeta(0, 0, Collections.singletonList(info.name));
-        }
+        if (mode == Mode.SURAH_BASED && position >= 0 && position < surahs.size())
+            return new PageMeta(0, 0, Collections.singletonList(surahs.get(position).name));
         return null;
     }
 
@@ -191,7 +186,6 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
             tvPageNumBottom      = v.findViewById(R.id.tvPageNumBottom);
             progressBar          = v.findViewById(R.id.mushafProgress);
 
-            // تطبيق خط القرآن — هو نفسه يُنشئ دوائر الأرقام
             if (quranTypeface != null) {
                 tvBismillah.setTypeface(quranTypeface);
                 tvMushafContent.setTypeface(quranTypeface);
@@ -199,7 +193,6 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
             }
         }
 
-        // ── وضع الصفحة الحقيقية ──────────────────────────
         void bindPage(int pageNum) {
             final String tag = "p:" + pageNum;
             itemView.setTag(tag);
@@ -219,7 +212,6 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
             });
         }
 
-        // ── وضع سورة بسورة ───────────────────────────────
         void bindSurah(SurahInfo info) {
             final String tag = "s:" + info.number;
             itemView.setTag(tag);
@@ -240,14 +232,14 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
                     if (!ayahs.isEmpty() && ayahs.get(0).page > 0)
                         tvPageNumBottom.setText(toAr(ayahs.get(0).page));
 
-                    if (info.number != 9 && info.number != 1) showBismillah();
-                    tvMushafContent.setText(buildAyahText(ayahs, true));
+                    if (needsBismillah(info.number)) showBismillah();
+
+                    tvMushafContent.setText(buildAyahText(ayahs));
                     showContent();
                 });
             });
         }
 
-        // ── بناء صفحة قد تحتوي أكثر من سورة ────────────
         private void renderPage(List<AyahEntity> ayahs) {
             AyahEntity first = ayahs.get(0);
             boolean pageStartsNewSurah = (first.numberInSurah == 1);
@@ -256,73 +248,72 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
                 SurahInfo fi = SurahInfo.getByNumber(first.surahNumber);
                 tvMushafSurahHeader.setText("سُورَةُ " + (fi != null ? fi.name : ""));
                 surahHeaderContainer.setVisibility(View.VISIBLE);
-                if (fi != null && fi.number != 9 && fi.number != 1) showBismillah();
+                if (needsBismillah(first.surahNumber)) showBismillah();
             } else {
                 surahHeaderContainer.setVisibility(View.GONE);
             }
 
-            if (!ayahs.isEmpty() && ayahs.get(0).page > 0)
-                tvPageNumBottom.setText(toAr(ayahs.get(0).page));
+            if (first.page > 0) tvPageNumBottom.setText(toAr(first.page));
 
             tvMushafContent.setText(buildPageText(ayahs, pageStartsNewSurah));
             showContent();
         }
 
         /**
-         * نص مصحفي — أرقام الآيات بـ U+06DD + أرقام عربية.
-         * خط القرآن يرسمها دائرة ذهبية تلقائياً.
+         * نص مصحفي لسورة واحدة.
          *
-         * المثال: "نص الآية ۝١ نص الآية التالية ۝٢"
+         * الأرقام تُكتب مباشرة بالعربية (١ ٢ ٣...) — الخط يضعها في دائرة تلقائياً.
+         * لا U+06DD، لا مسافة غير قاطعة، لا Span مخصص للشكل.
+         *
+         * المثال: "نَصُّ الآية ١ نَصُّ الآية التالية ٢"
          */
-        private SpannableStringBuilder buildAyahText(List<AyahEntity> ayahs,
-                                                       boolean singleSurah) {
+        private SpannableStringBuilder buildAyahText(List<AyahEntity> ayahs) {
             SpannableStringBuilder sb = new SpannableStringBuilder();
             for (AyahEntity a : ayahs) {
                 sb.append(a.text);
-                sb.append("\u00A0"); // non-breaking space
+                sb.append(" ");
 
-                // علامة نهاية الآية + الرقم بالأرقام العربية
-                // الخط يُحوّلها لدائرة تلقائياً
-                String ayahMark = String.valueOf(END_OF_AYAH) + toAr(a.numberInSurah) + " ";
-                int start = sb.length();
-                sb.append(ayahMark);
-
-                // اللون الذهبي على رقم الآية
+                // الرقم بالأرقام العربية فقط — الخط يعرضه كدائرة
+                String num = toAr(a.numberInSurah);
+                int s = sb.length();
+                sb.append(num);
                 sb.setSpan(new ForegroundColorSpan(Color.parseColor("#C9A84C")),
-                        start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                // حجم أصغر قليلاً
-                sb.setSpan(new RelativeSizeSpan(0.85f),
-                        start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        s, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sb.setSpan(new RelativeSizeSpan(0.9f),
+                        s, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                sb.append(" "); // مسافة عادية بعد الرقم
             }
             return sb;
         }
 
         /**
-         * نص صفحة متعددة السور — يُضيف رأس السورة عند الانتقال
+         * نص صفحة قد تحتوي عدة سور.
+         * عند الانتقال لسورة جديدة: رأس السورة + بسملة (إلا التوبة).
          */
-        private CharSequence buildPageText(List<AyahEntity> ayahs, boolean skipFirst) {
+        private CharSequence buildPageText(List<AyahEntity> ayahs, boolean skipFirstHeader) {
             SpannableStringBuilder sb = new SpannableStringBuilder();
             int currentSurah = -1;
             boolean isFirst  = true;
 
             for (AyahEntity a : ayahs) {
                 if (a.surahNumber != currentSurah) {
-                    boolean insertHeader = !(isFirst && skipFirst);
+                    boolean insertHeader = !(isFirst && skipFirstHeader);
                     if (insertHeader) {
                         if (sb.length() > 0) sb.append("\n\n");
 
+                        // رأس السورة الجديدة
                         SurahInfo ni = SurahInfo.getByNumber(a.surahNumber);
                         String hdr = "﴾  سُورَةُ " + (ni != null ? ni.name : "") + "  ﴿";
                         int hs = sb.length();
                         sb.append(hdr);
                         sb.setSpan(new ForegroundColorSpan(Color.parseColor("#EAD080")),
                                 hs, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        sb.setSpan(new RelativeSizeSpan(0.80f),
+                        sb.setSpan(new RelativeSizeSpan(0.78f),
                                 hs, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-                        // بسملة السورة الجديدة
-                        if (a.numberInSurah == 1 && ni != null
-                                && ni.number != 9 && ni.number != 1) {
+                        // بسملة السورة الجديدة — إلا التوبة (9) والفاتحة (1)
+                        if (a.numberInSurah == 1 && needsBismillah(a.surahNumber)) {
                             sb.append("\n");
                             String bism = "بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ";
                             int bs = sb.length();
@@ -338,14 +329,17 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
                     isFirst = false;
                 }
 
-                sb.append(a.text).append("\u00A0");
-                String mark = String.valueOf(END_OF_AYAH) + toAr(a.numberInSurah) + " ";
-                int ms = sb.length();
-                sb.append(mark);
+                sb.append(a.text).append(" ");
+
+                String num = toAr(a.numberInSurah);
+                int ns = sb.length();
+                sb.append(num);
                 sb.setSpan(new ForegroundColorSpan(Color.parseColor("#C9A84C")),
-                        ms, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                sb.setSpan(new RelativeSizeSpan(0.85f),
-                        ms, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        ns, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sb.setSpan(new RelativeSizeSpan(0.9f),
+                        ns, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                sb.append(" ");
             }
             return sb;
         }
@@ -372,6 +366,7 @@ public class MushafPagerAdapter extends RecyclerView.Adapter<MushafPagerAdapter.
             emptyContainer.setVisibility(View.VISIBLE);
         }
 
+        /** تحويل رقم لأرقام عربية — الخط يضعها في دائرة تلقائياً */
         private String toAr(int n) {
             final String[] d = {"٠","١","٢","٣","٤","٥","٦","٧","٨","٩"};
             StringBuilder sb = new StringBuilder();
