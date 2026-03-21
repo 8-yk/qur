@@ -3,127 +3,168 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_primary">
+    android:padding="6dp">
 
-    <!-- ورقة المصحف الكرتوني -->
+    <!-- ورقة المصحف — الإطار الذهبي المزدوج -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginHorizontal="8dp"
-        android:layout_marginVertical="4dp"
         android:orientation="vertical"
-        android:background="@drawable/bg_mushaf_page_border">
+        android:background="@drawable/bg_mushaf_page_border"
+        android:paddingHorizontal="6dp">
 
-        <!-- الشريط العلوي: الجزء | اسم السورة -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- شريط العنوان: اسم السورة | اسم الجزء       -->
+        <!-- ═══════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layoutDirection="rtl"
             android:gravity="center_vertical"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="9dp">
+            android:paddingHorizontal="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="7dp">
 
+            <!-- اسم السورة — يمين -->
             <TextView
-                android:id="@+id/tvJuzDisplay"
+                android:id="@+id/tvPageSurahName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="#9A8040"
-                android:textSize="10sp"
+                android:textColor="#C9A84C"
+                android:textSize="11sp"
                 android:fontFamily="serif"
-                android:gravity="end"
-                android:letterSpacing="0.04"
-                android:visibility="invisible" />
+                android:gravity="end" />
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="12dp"
-                android:layout_marginHorizontal="10dp"
-                android:background="#7A6530"
-                android:alpha="0.5" />
-
+            <!-- نقاط وسطى -->
             <TextView
-                android:id="@+id/tvSurahCorner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" · "
+                android:textColor="#7A6530"
+                android:textSize="11sp"
+                android:paddingHorizontal="4dp" />
+
+            <!-- اسم الجزء — يسار -->
+            <TextView
+                android:id="@+id/tvPageJuzName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="#9A8040"
-                android:textSize="10sp"
+                android:textColor="#C9A84C"
+                android:textSize="11sp"
                 android:fontFamily="serif"
-                android:gravity="start"
-                android:letterSpacing="0.04" />
+                android:gravity="start" />
         </LinearLayout>
 
         <!-- خط ذهبي رفيع فاصل -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:background="#7A6530"
-            android:alpha="0.7" />
+            android:layout_height="1dp"
+            android:background="#C9A84C"
+            android:alpha="0.4"
+            android:layout_marginHorizontal="8dp" />
 
-        <!-- رأس السورة المزخرف -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- رأس السورة المزخرف                          -->
+        <!-- ═══════════════════════════════════════════ -->
         <FrameLayout
+            android:id="@+id/surahHeaderContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_surah_header_band">
+            android:layout_marginTop="6dp"
+            android:layout_marginHorizontal="2dp"
+            android:background="@drawable/bg_surah_header_band"
+            android:visibility="visible">
 
+            <!-- الزخرفة اليمنى -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|end"
+                android:text="❧"
+                android:textColor="#7A6530"
+                android:textSize="18sp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="10dp" />
+
+            <!-- اسم السورة وسط -->
             <TextView
                 android:id="@+id/tvMushafSurahHeader"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:gravity="center"
-                android:textColor="@color/gold_primary"
+                android:textColor="#E8CC80"
                 android:textSize="16sp"
                 android:fontFamily="serif"
                 android:textStyle="bold"
-                android:paddingVertical="13dp"
-                android:paddingHorizontal="16dp"
-                android:letterSpacing="0.08" />
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="50dp"
+                android:letterSpacing="0.1" />
+
+            <!-- الزخرفة اليسرى -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|start"
+                android:text="❧"
+                android:textColor="#7A6530"
+                android:textSize="18sp"
+                android:scaleX="-1"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="10dp" />
+
         </FrameLayout>
 
-        <!-- خط رفيع تحت الرأس -->
+        <!-- خط رفيع بعد الرأس -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:background="#7A6530"
-            android:alpha="0.5" />
+            android:layout_height="1dp"
+            android:background="#C9A84C"
+            android:alpha="0.3"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginTop="4dp" />
 
-        <!-- البسملة -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- البسملة بالطريقة المصحفية مع شرطات         -->
+        <!-- ═══════════════════════════════════════════ -->
         <TextView
             android:id="@+id/tvBismillah"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
             android:gravity="center"
-            android:textColor="@color/gold_primary"
-            android:textSize="19sp"
+            android:textColor="#C9A84C"
+            android:textSize="17sp"
             android:fontFamily="serif"
-            android:paddingTop="14dp"
+            android:paddingTop="10dp"
             android:paddingBottom="6dp"
             android:visibility="gone" />
 
         <!-- خط رفيع تحت البسملة -->
         <View
             android:id="@+id/bismillahDivider"
-            android:layout_width="90dp"
+            android:layout_width="100dp"
             android:layout_height="0.5dp"
             android:layout_gravity="center_horizontal"
             android:background="#C9A84C"
-            android:alpha="0.4"
-            android:layout_marginBottom="6dp"
+            android:alpha="0.35"
+            android:layout_marginBottom="4dp"
             android:visibility="gone" />
 
-        <!-- نص الآيات المتصل — يأخذ كامل المساحة -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- نص الآيات المتصل — المساحة الرئيسية         -->
+        <!-- ═══════════════════════════════════════════ -->
         <ScrollView
+            android:id="@+id/svMushafContent"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:fadingEdgeLength="20dp"
+            android:fadingEdgeLength="24dp"
             android:requiresFadingEdge="vertical"
             android:scrollbarThumbVertical="@color/gold_dim"
-            android:visibility="gone"
-            android:id="@+id/svMushafContent">
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/tvMushafContent"
@@ -131,51 +172,68 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textAlignment="center"
-                android:textColor="@color/text_primary"
-                android:textSize="21sp"
-                android:lineSpacingMultiplier="2.1"
+                android:textColor="#EDE8D5"
+                android:textSize="20sp"
+                android:lineSpacingMultiplier="2.2"
                 android:justificationMode="inter_word"
-                android:paddingHorizontal="18dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="16dp" />
+                android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
         </ScrollView>
 
         <!-- حالة فارغة -->
-        <TextView
-            android:id="@+id/tvMushafEmpty"
+        <LinearLayout
+            android:id="@+id/emptyContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="﴿ لم يُضَف نص لهذه السورة ﴾\n\nاذهب إلى الإضافة لبناء بياناتك"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp"
-            android:lineSpacingMultiplier="1.8"
-            android:visibility="gone" />
+            android:visibility="gone">
 
-        <!-- خط ذهبي سفلي -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="﴿ لم يُضَف نص لهذه السورة ﴾"
+                android:textColor="#7A6530"
+                android:textSize="15sp"
+                android:fontFamily="serif"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="اذهب إلى الإضافة لبناء بياناتك"
+                android:textColor="#555870"
+                android:textSize="12sp"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- الخط الذهبي السفلي + رقم الصفحة            -->
+        <!-- ═══════════════════════════════════════════ -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:background="#7A6530"
-            android:alpha="0.5" />
+            android:layout_height="1dp"
+            android:background="#C9A84C"
+            android:alpha="0.3"
+            android:layout_marginHorizontal="8dp" />
 
-        <!-- رقم الصفحة في الأسفل -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="38dp"
-            android:gravity="center">
+            android:layout_height="42dp">
 
             <TextView
                 android:id="@+id/tvPageNumBottom"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
+                android:layout_width="46dp"
+                android:layout_height="36dp"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:textColor="@color/gold_primary"
-                android:textSize="11sp"
+                android:textColor="#C9A84C"
+                android:textSize="12sp"
                 android:fontFamily="serif"
-                android:background="@drawable/bg_page_num_mushaf" />
+                android:background="@drawable/bg_page_number_circle" />
         </FrameLayout>
 
     </LinearLayout>
