@@ -1,13 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- خلفية داكنة ذهبية -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#1A1410" />
+            <gradient
+                android:startColor="#1A1508"
+                android:centerColor="#211C0A"
+                android:endColor="#1A1508"
+                android:angle="0"
+                android:type="linear" />
         </shape>
     </item>
-    <item android:bottom="1dp">
+    <!-- حد ذهبي علوي -->
+    <item android:bottom="0dp" android:left="0dp" android:right="0dp">
         <shape android:shape="rectangle">
-            <stroke android:width="1dp" android:color="#7A6530" />
+            <stroke android:width="1dp" android:color="#C9A84C" />
+        </shape>
+    </item>
+    <!-- خط ذهبي داخلي علوي -->
+    <item android:top="3dp" android:bottom="0dp" android:left="6dp" android:right="6dp">
+        <shape android:shape="rectangle">
+            <stroke android:width="0.5dp" android:color="#8A6C2C" />
         </shape>
     </item>
 </layer-list>
