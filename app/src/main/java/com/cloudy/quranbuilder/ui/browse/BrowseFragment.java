@@ -2,24 +2,33 @@ package com.cloudy.quranbuilder.ui.browse;
 
 import android.os.Bundle;
 import android.text.*;
+import android.util.Pair;
 import android.view.*;
 import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.LiveData;
 import com.cloudy.quranbuilder.MainActivity;
 import com.cloudy.quranbuilder.data.*;
 import com.cloudy.quranbuilder.databinding.FragmentBrowseBinding;
 import com.cloudy.quranbuilder.model.SurahInfo;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClickListener {
 
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+
     private FragmentBrowseBinding binding;
     private SurahAdapter adapter;
 
-    // فقط السور الموجودة في DB
-    private List<SurahEntity>              dbSurahList = new ArrayList<>();
-    private Map<Integer, AyahDao.SurahStat> statsMap   = new HashMap<>();
+    // آخر بيانات وصلت من LiveData
+    private List<SurahEntity>              latestSurahs = new ArrayList<>();
+    private List<AyahDao.SurahStat>        latestStats  = new ArrayList<>();
+    private String                          currentQuery = "";
+
+    private MediatorLiveData<Pair<List<SurahEntity>, List<AyahDao.SurahStat>>> combined;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater i, ViewGroup c, Bundle s) {
@@ -34,68 +43,70 @@ public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClic
         adapter = new SurahAdapter(this);
         binding.recyclerSurahs.setAdapter(adapter);
 
+        // ── LiveData مُركَّب: سور + إحصاءات ─────────────────
+        AppDatabase db = AppDatabase.getInstance(requireContext());
+        LiveData<List<SurahEntity>>       surahsLd = db.surahDao().getAllSurahsLive();
+        LiveData<List<AyahDao.SurahStat>> statsLd  = db.ayahDao().getSurahStatsLive();
+
+        combined = new MediatorLiveData<>();
+        combined.addSource(surahsLd, surahs ->
+                combined.setValue(new Pair<>(surahs, statsLd.getValue())));
+        combined.addSource(statsLd, stats ->
+                combined.setValue(new Pair<>(surahsLd.getValue(), stats)));
+
+        combined.observe(getViewLifecycleOwner(), pair -> {
+            latestSurahs = pair.first  != null ? pair.first  : new ArrayList<>();
+            latestStats  = pair.second != null ? pair.second : new ArrayList<>();
+            rebuildList(currentQuery);
+        });
+
+        // ── البحث ────────────────────────────────────────────
         binding.searchInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             @Override public void afterTextChanged(Editable s) {}
             @Override public void onTextChanged(CharSequence s, int st, int b, int co) {
-                filterSurahs(s.toString());
+                currentQuery = s.toString().trim();
+                rebuildList(currentQuery);
             }
         });
 
+        // ── FAB ──────────────────────────────────────────────
         binding.fabAddSurah.setOnClickListener(v -> {
             AddSurahSheet sheet = new AddSurahSheet();
-            sheet.setOnSurahAddedListener(() -> loadData());
+            // LiveData يُحدّث القائمة تلقائياً بعد الإضافة
             sheet.show(getParentFragmentManager(), "add_surah");
         });
-
-        loadData();
     }
 
-    @Override public void onResume() { super.onResume(); loadData(); }
+    /** يُعيد بناء القائمة في الخلفية مع الفلتر الحالي */
+    private void rebuildList(String query) {
+        final List<SurahEntity>       snapSurahs = new ArrayList<>(latestSurahs);
+        final List<AyahDao.SurahStat> snapStats  = new ArrayList<>(latestStats);
 
-    private void loadData() {
-        if (!isAdded()) return;
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(requireContext());
-
-            // السور من DB فقط
-            List<SurahEntity> surahs = db.surahDao().getAllSurahsSync();
-
-            // إحصاءات الآيات
-            List<AyahDao.SurahStat> stats = db.ayahDao().getSurahStats();
+        EXECUTOR.execute(() -> {
+            // بناء statsMap
             Map<Integer, AyahDao.SurahStat> sm = new HashMap<>();
-            for (AyahDao.SurahStat st : stats) sm.put(st.surahNumber, st);
+            for (AyahDao.SurahStat st : snapStats) sm.put(st.surahNumber, st);
 
-            int totalAyahs = db.ayahDao().getTotalAyahCount();
+            int totalAyahs = 0;
+            for (AyahDao.SurahStat st : snapStats) totalAyahs += st.count;
+            final int finalTotal = totalAyahs;
 
-            List<SurahAdapter.SurahRow> rows = buildRows(surahs, sm, "");
+            // بناء الصفوف
+            List<SurahAdapter.SurahRow> rows = buildRows(snapSurahs, sm, query);
 
             if (!isAdded() || binding == null) return;
+            final String stats = snapSurahs.size() + " سورة · " + finalTotal + " آية محفوظة";
+            List<SurahAdapter.SurahRow> finalRows = rows;
+
             requireActivity().runOnUiThread(() -> {
                 if (binding == null) return;
-                dbSurahList = surahs;
-                statsMap    = sm;
-                adapter.submitList(rows);
-                binding.tvStats.setText(surahs.size() + " سورة · " + totalAyahs + " آية محفوظة");
+                adapter.submitList(finalRows);
+                binding.tvStats.setText(stats);
             });
         });
     }
 
-    private void filterSurahs(String query) {
-        if (!isAdded()) return;
-        final List<SurahEntity>              snapSurahs = new ArrayList<>(dbSurahList);
-        final Map<Integer, AyahDao.SurahStat> snapStats = new HashMap<>(statsMap);
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<SurahAdapter.SurahRow> rows = buildRows(snapSurahs, snapStats, query.trim());
-            if (!isAdded() || binding == null) return;
-            requireActivity().runOnUiThread(() -> {
-                if (binding == null) return;
-                adapter.submitList(rows);
-            });
-        });
-    }
-
-    /** يبني الـ rows من السور الموجودة في DB فقط */
     private List<SurahAdapter.SurahRow> buildRows(
             List<SurahEntity> surahs,
             Map<Integer, AyahDao.SurahStat> stats,
@@ -110,10 +121,7 @@ public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClic
             AyahDao.SurahStat stat = stats.get(s.number);
             int savedCount = stat != null ? stat.count  : 0;
             int minJuz     = stat != null ? stat.minJuz : 0;
-
-            // SurahInfo لمعرفة إجمالي الآيات الثابت (إن وُجد)
             SurahInfo info = SurahInfo.getByNumber(s.number);
-
             rows.add(new SurahAdapter.SurahRow(info, s, savedCount, minJuz));
         }
         return rows;
@@ -122,14 +130,9 @@ public class BrowseFragment extends Fragment implements SurahAdapter.OnSurahClic
     @Override
     public void onSurahClick(SurahInfo surahInfo) {
         if (getActivity() instanceof MainActivity)
-            ((MainActivity) getActivity()).openAyahsScreen(surahInfo != null ? surahInfo.number : 0,
-                    surahInfo != null ? surahInfo.name : "");
-    }
-
-    // يُستدعى من SurahAdapter عند الضغط على سورة ليس لها SurahInfo ثابتة
-    public void onDbSurahClick(SurahEntity surah) {
-        if (getActivity() instanceof MainActivity)
-            ((MainActivity) getActivity()).openAyahsScreen(surah.number, surah.name);
+            ((MainActivity) getActivity()).openAyahsScreen(
+                    surahInfo != null ? surahInfo.number : 0,
+                    surahInfo != null ? surahInfo.name   : "");
     }
 
     @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
