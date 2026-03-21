@@ -23,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
 
     private Fragment activeFragment;
 
+    /** هل التبويب الحالي (قبل التبديل) من النوع الذي يُعدّل البيانات؟ */
+    private boolean leavingDataFragment = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,10 +61,21 @@ public class MainActivity extends AppCompatActivity {
     private void setupBottomNav() {
         binding.bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
+
+            // قبل الانتقال: هل كنا في تبويب يُعدّل بيانات؟
+            boolean wasInDataTab = (activeFragment == addFragment
+                    || activeFragment == importExportFragment
+                    || activeFragment == browseFragment);
+
             if      (id == R.id.nav_browse) showFragment(browseFragment);
-            else if (id == R.id.nav_mushaf) showFragment(mushafFragment);
-            else if (id == R.id.nav_add)    showFragment(addFragment);
-            else if (id == R.id.nav_data)   showFragment(importExportFragment);
+            else if (id == R.id.nav_mushaf) {
+                // إذا كنا قادمين من تبويب يغيّر البيانات → نُعلّم المصحف كـ stale
+                if (wasInDataTab) mushafFragment.markDataStale();
+                showFragment(mushafFragment);
+            }
+            else if (id == R.id.nav_add)  showFragment(addFragment);
+            else if (id == R.id.nav_data) showFragment(importExportFragment);
+
             return true;
         });
     }
@@ -77,6 +91,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openAyahsScreen(int surahNumber, String surahName) {
+        // عند العودة من شاشة الآيات → المصحف يحتاج تحديث
+        mushafFragment.markDataStale();
+
         Fragment f = com.cloudy.quranbuilder.ui.browse.AyahsFragment
                 .newInstance(surahNumber, surahName);
 
