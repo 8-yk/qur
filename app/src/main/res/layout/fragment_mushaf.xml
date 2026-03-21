@@ -4,27 +4,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#080A10">
+    android:background="#141020">
 
-    <!-- ViewPager يأخذ كامل الشاشة -->
+    <!-- ViewPager يملأ الشاشة، padding يتركه لشريطي العنوان والتنقل -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="76dp"
+        android:paddingTop="74dp"
         android:paddingBottom="52dp"
         android:clipToPadding="false" />
 
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- شريط العنوان العلوي                                 -->
-    <!-- يمين: أسماء السور في الصفحة  |  يسار: اسم الجزء   -->
+    <!-- يمين: اسم السورة (أو أسماء السور في الصفحة)        -->
+    <!-- يسار: اسم الجزء                                   -->
     <!-- ═══════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/mushafTopBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#CC080A10"
+        android:background="#DD141020"
         android:elevation="4dp">
 
         <LinearLayout
@@ -33,18 +34,18 @@
             android:orientation="horizontal"
             android:layoutDirection="rtl"
             android:gravity="center_vertical"
-            android:paddingTop="36dp"
-            android:paddingBottom="8dp"
-            android:paddingHorizontal="18dp">
+            android:paddingTop="34dp"
+            android:paddingBottom="9dp"
+            android:paddingHorizontal="20dp">
 
-            <!-- أسماء السور (يمين) — تتغير مع كل صفحة -->
+            <!-- أسماء السور — يتغير مع كل تقليبة -->
             <TextView
                 android:id="@+id/tvTopSurahNames"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="#C9A84C"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:fontFamily="serif"
                 android:gravity="end"
                 android:maxLines="1"
@@ -52,19 +53,18 @@
 
             <View
                 android:layout_width="1dp"
-                android:layout_height="12dp"
-                android:layout_marginHorizontal="12dp"
-                android:background="#5A4A20"
-                android:alpha="0.8" />
+                android:layout_height="13dp"
+                android:layout_marginHorizontal="14dp"
+                android:background="#6A5520" />
 
-            <!-- اسم الجزء (يسار) — يتغير مع كل صفحة -->
+            <!-- اسم الجزء — يتغير مع كل تقليبة -->
             <TextView
                 android:id="@+id/tvTopJuzName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="#C9A84C"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:fontFamily="serif"
                 android:gravity="start"
                 android:maxLines="1"
@@ -72,7 +72,7 @@
 
         </LinearLayout>
 
-        <!-- خط تقدم رفيع -->
+        <!-- خط تقدم رفيع جداً -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/mushafTopProgress"
             android:layout_width="match_parent"
@@ -95,21 +95,22 @@
         android:orientation="horizontal"
         android:layoutDirection="rtl"
         android:gravity="center_vertical"
-        android:background="#CC080A10"
+        android:background="#DD141020"
         android:paddingHorizontal="4dp">
 
+        <!-- السابق -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMushafPrev"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="‹"
-            android:textSize="22sp"
+            android:textSize="24sp"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="#C9A84C"
             android:minWidth="0dp"
-            android:paddingHorizontal="14dp" />
+            android:paddingHorizontal="16dp" />
 
-        <!-- الوسط: العداد + زر الانتقال -->
+        <!-- وسط: العداد + انتقل -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -122,14 +123,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#50546A"
-                android:textSize="12sp"
-                android:fontFamily="sans-serif" />
+                android:textSize="12sp" />
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="11dp"
                 android:layout_marginHorizontal="10dp"
-                android:background="#252535" />
+                android:background="#282838" />
 
             <TextView
                 android:id="@+id/btnMushafJump"
@@ -143,16 +143,17 @@
 
         </LinearLayout>
 
+        <!-- التالي -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMushafNext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="›"
-            android:textSize="22sp"
+            android:textSize="24sp"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="#C9A84C"
             android:minWidth="0dp"
-            android:paddingHorizontal="14dp" />
+            android:paddingHorizontal="16dp" />
 
     </LinearLayout>
 
@@ -169,7 +170,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="﴿ المصحف فارغ ﴾"
-            android:textColor="#7A6530"
+            android:textColor="#6A5520"
             android:textSize="22sp"
             android:fontFamily="serif" />
 
@@ -177,8 +178,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:text="أضف سوراً وآيات أولاً من تبويب الإضافة"
-            android:textColor="#484C64"
+            android:text="أضف سوراً وآيات من تبويب الإضافة"
+            android:textColor="#404060"
             android:textSize="14sp"
             android:gravity="center" />
 
